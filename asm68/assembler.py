@@ -10,54 +10,70 @@ from collections.abc import Set
 
 from asm68.registers import RegisterName, PCR
 
-
 class AsmDsl:
 
     def __init__(self):
-        self._labels = {}
+        self._code = bytearray()
 
-    def __call__(self, opcode, *args):
-        if len(args) == 1:
-            if isinstance(args[0], str):
-                operand = None
-                comment = args[0]
-            else:
-                operand = args[0]
-                comment = ""
-        elif len(args) == 2:
-            operand, comment = args
-        else:
-            raise TypeError("Incorrect argument types.")
+    def __call__(self, mnemonic):
+        if mnemonic not in OPCODES:
+            raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
+        addressing_mode = Inherent
+        opcodes = OPCODES[mnemonic]
+        opcode = opcodes[addressing_mode]
+        self._code.append(opcode)
 
-        if not isinstance(comment, str):
-            raise TypeError("Comment must be a string")
+    @property
+    def code(self):
+        return bytes(self._code)
 
-        address = self._asm(opcode, operand, comment)
-        return address
-
-
-    def _asm(self, opcode, operand, comment):
-        # Create a statement
-        if opcode not in OPCODES:
-            raise ValueError("No such opcde: {}".format(opcode))
-
-        parse_operand(operand)
-
-        return address
-
-    def __getattr__(self, name):
-        return Labeller(self, label=name)
-
-class Labeller:
-
-    def __init__(self, asm, label):
-        self._asm = asm
-        self._label = label
-
-    def __call__(self, *args, **kwargs):
-        address = self._asm(*args, **kwargs)
-        self._asm._labels[self._label] = address
-        return address
+# class AsmDsl:
+#
+#     def __init__(self):
+#         self._labels = {}
+#
+#     def __call__(self, opcode, *args):
+#         if len(args) == 1:
+#             if isinstance(args[0], str):
+#                 operand = None
+#                 comment = args[0]
+#             else:
+#                 operand = args[0]
+#                 comment = ""
+#         elif len(args) == 2:
+#             operand, comment = args
+#         else:
+#             raise TypeError("Incorrect argument types.")
+#
+#         if not isinstance(comment, str):
+#             raise TypeError("Comment must be a string")
+#
+#         address = self._asm(opcode, operand, comment)
+#         return address
+#
+#
+#     def _asm(self, opcode, operand, comment):
+#         # Create a statement
+#         if opcode not in OPCODES:
+#             raise ValueError("No such opcde: {}".format(opcode))
+#
+#         parse_operand(operand)
+#
+#         return address
+#
+#     def __getattr__(self, name):
+#         return Labeller(self, label=name)
+#
+# class Labeller:
+#
+#     def __init__(self, asm, label):
+#         self._asm = asm
+#         self._label = label
+#
+#     def __call__(self, *args, **kwargs):
+#         address = self._asm(*args, **kwargs)
+#         self._asm._labels[self._label] = address
+#         return address
 
 
 @singledispatch

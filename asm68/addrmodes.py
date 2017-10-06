@@ -2,13 +2,6 @@ from numbers import Integral
 
 from asm68.label import Label
 
-IVLD = "Invalid"
-INH = "Inherent"
-IMM = "Immediate"
-DIR = "Direct"
-IND = "Indexed"
-EXT = "Extended"
-
 
 class Inherent:
     pass
@@ -83,3 +76,9 @@ class ExtendedIndirect:
 
 # TODO: Indexed addressing
 
+IVLD = "Invalid"
+INH = Inherent
+IMM = "Immediate"
+DIR = "Direct"
+IND = "Indexed"
+EXT = "Extended"
