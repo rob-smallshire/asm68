@@ -5,8 +5,8 @@ from .addrmodes import *
 
 OPCODES = frozendict({
     ABX:   { INH: 0x3A,                                                      },
-    ADCA:  { INH: 0x00,   IMM: 0x89,   DIR: 0x99,   IDX: 0xA9,   EXT: 0xB9   },
-    ADCB:  { INH: 0x00,   IMM: 0xC9,   DIR: 0xD9,   IDX: 0xE9,   EXT: 0xF9   },
+    ADCA:  {              IMM: 0x89,   DIR: 0x99,   IDX: 0xA9,   EXT: 0xB9   },
+    ADCB:  {              IMM: 0xC9,   DIR: 0xD9,   IDX: 0xE9,   EXT: 0xF9   },
     ADDA:  {              IMM: 0x8B,   DIR: 0x9B,   IDX: 0xAB,   EXT: 0xBB   },
     ADDB:  {              IMM: 0xCB,   DIR: 0xDB,   IDX: 0xEB,   EXT: 0xFB   },
     ADDD:  {              IMM: 0xC3,   DIR: 0xD3,   IDX: 0xE3,   EXT: 0xF3   },
