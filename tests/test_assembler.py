@@ -1,6 +1,6 @@
 from pytest import raises
 
-from asm68.assembler import parse_operand
+from asm68.asmdsl import parse_operand
 from asm68.label import Label
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect
 
