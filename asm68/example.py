@@ -1,4 +1,4 @@
-from asm68.assembler import AsmDsl
+from asm68.asmdsl import AsmDsl
 from asm68.mnemonics import *
 from asm68.registers import *
 

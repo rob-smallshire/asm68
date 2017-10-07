@@ -3,6 +3,7 @@ import types
 from functools import singledispatch
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect
+from asm68.ast import MNEMONIC_TO_AST
 from asm68.label import Label
 from asm68.opcodes import OPCODES
 from numbers import Integral
@@ -13,19 +14,21 @@ from asm68.registers import RegisterName, PCR
 class AsmDsl:
 
     def __init__(self):
-        self._code = bytearray()
+        self._statements = []
 
-    def __call__(self, mnemonic):
-        if mnemonic not in OPCODES:
+    def __call__(self, mnemonic, operand=None):
+
+        operand_node = parse_operand(operand)
+
+        if mnemonic not in MNEMONIC_TO_AST:
             raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
-        addressing_mode = Inherent
-        opcodes = OPCODES[mnemonic]
-        opcode = opcodes[addressing_mode]
-        self._code.append(opcode)
+        statement_node = MNEMONIC_TO_AST[mnemonic](operand_node)
+        self._statements.append(statement_node)
 
     @property
-    def code(self):
-        return bytes(self._code)
+    def statements(self):
+        return tuple(self._statements)
+
 
 # class AsmDsl:
 #

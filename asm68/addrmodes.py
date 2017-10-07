@@ -4,13 +4,23 @@ from asm68.label import Label
 
 
 class Inherent:
-    pass
 
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return True
+
+    def __repr__(self):
+        return "{}()".format(self.__class__.__name__)
+
+    def __hash__(self):
+        return hash(self.__class__)
 
 class Immediate:
 
     def __init__(self, value):
         self._value = value
+        self._key = (self.__class__, self._value)
 
     @property
     def value(self):
@@ -18,6 +28,15 @@ class Immediate:
 
     def __repr__(self):
         return "{}({!r})".format(self.__class__.__name__, self._value)
+
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._key == rhs._key
+
+    def __hash__(self):
+        return hash(self._key)
+
 
 
 class PageDirect:
@@ -27,6 +46,7 @@ class PageDirect:
             raise ValueError("Invalid page direct address 0x{:X}. "
                              "Must be one byte 0x00-0xFF.".format(address))
         self._address = address
+        self._key = (self.__class__, self._address)
 
     @property
     def address(self):
@@ -34,6 +54,14 @@ class PageDirect:
 
     def __repr__(self):
         return "{}(0x{:02X})".format(self.__class__.__name__, self._address)
+
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._key == rhs._key
+
+    def __hash__(self):
+        return hash(self._key)
 
 
 class ExtendedDirect:
@@ -45,6 +73,7 @@ class ExtendedDirect:
             raise ValueError("Invalid extended direct address 0x{:X}. "
                              "Must be one two byte 0x0000-0xFFFF.".format(address))
         self._address = address
+        self._key = (self.__class__, self._address)
 
     @property
     def address(self):
@@ -53,6 +82,16 @@ class ExtendedDirect:
     def __repr__(self):
         field = "0x{:04X}".format(self._address) if isinstance(self._address, Integral) else str(self._address)
         return "{}({})".format(self.__class__.__name__, field)
+
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._key == rhs._key
+
+    def __hash__(self):
+        return hash(self._key)
+
+
 
 
 class ExtendedIndirect:
@@ -64,6 +103,7 @@ class ExtendedIndirect:
             raise ValueError("Invalid extended indirect address 0x{:X}. "
                              "Must be 0x0000-0xFFFF.".format(address))
         self._address = address
+        self._key = (self.__class__, self._address)
 
     @property
     def address(self):
@@ -73,12 +113,30 @@ class ExtendedIndirect:
         field = "0x{:04X}".format(self._address) if isinstance(self._address, Integral) else str(self._address)
         return "{}(0x{:04X})".format(self.__class__.__name__, field)
 
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._key == rhs._key
+
+    def __hash__(self):
+        return hash(self._key)
 
 # TODO: Indexed addressing
 
-IVLD = "Invalid"
-INH = Inherent
+class Indexed:
+    pass
+
+INH = "Inherent"
 IMM = "Immediate"
 DIR = "Direct"
-IND = "Indexed"
+IDX = "Indexed"
 EXT = "Extended"
+
+ADDRESSING_MODE_CODES = {
+    Inherent: INH,
+    Immediate: IMM,
+    PageDirect: DIR,
+    Indexed: IDX,
+    ExtendedDirect: EXT,
+    ExtendedIndirect: EXT,
+}
