@@ -16,6 +16,7 @@ class Inherent:
     def __hash__(self):
         return hash(self.__class__)
 
+
 class Immediate:
 
     def __init__(self, value):
@@ -37,6 +38,26 @@ class Immediate:
     def __hash__(self):
         return hash(self._key)
 
+
+class Registers:
+
+    def __init__(self, registers):
+        self._registers = registers
+
+    @property
+    def registers(self):
+        return self._registers
+
+    def __repr__(self):
+        return "{}({!r})".format(self.__class__.__name__, self._registers)
+
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._registers == rhs._registers
+
+    def __hash__(self):
+        return hash(self._registers)
 
 
 class PageDirect:
@@ -135,6 +156,7 @@ EXT = "Extended"
 ADDRESSING_MODE_CODES = {
     Inherent: INH,
     Immediate: IMM,
+    Registers: IMM,
     PageDirect: DIR,
     Indexed: IDX,
     ExtendedDirect: EXT,

@@ -1,4 +1,4 @@
-class RegisterName:
+class Register:
 
     _instances = {}
 
@@ -20,13 +20,21 @@ class RegisterName:
     def __repr__(self):
         return "{}({})".format(self.__class__.__name__, self._name)
 
-A = RegisterName('A')
-B = RegisterName('B')
-X = RegisterName('X')
-Y = RegisterName('Y')
-U = RegisterName('U')
-S = RegisterName('S')
-PC = RegisterName('PC')
-PCR = RegisterName('PCR')
-DP = RegisterName('DP')
-CC = RegisterName('CC')
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._name == rhs._name
+
+    def __hash__(self):
+        return hash(self._name)
+
+A = Register('A')
+B = Register('B')
+X = Register('X')
+Y = Register('Y')
+U = Register('U')
+S = Register('S')
+PC = Register('PC')
+PCR = Register('PCR')
+DP = Register('DP')
+CC = Register('CC')

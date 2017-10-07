@@ -2,14 +2,13 @@ import reprlib
 import types
 from functools import singledispatch
 
-from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect
+from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers
 from asm68.ast import MNEMONIC_TO_AST
 from asm68.label import Label
-from asm68.opcodes import OPCODES
 from numbers import Integral
 from collections.abc import Set
 
-from asm68.registers import RegisterName, PCR
+from asm68.registers import Register
 
 class AsmDsl:
 
@@ -112,6 +111,13 @@ def _(operand):
     else:
         raise TypeError("Expected integer address or label. Got {}".format(item))
 
+@parse_operand.register(tuple)
+def _(operand):
+    for item in operand:
+        if not isinstance(item, Register):
+            raise TypeError("{} is not a register".format(item))
+    return Registers(operand)
+
 @parse_operand.register(list)
 def _(operand):
     item = single(operand)
@@ -187,14 +193,14 @@ def single(iterable):
 # def indexed(operand):
 #     if len(operand) == 1:
 #         r = operand[0]
-#         if not isinstance(r, RegisterName):
+#         if not isinstance(r, Register):
 #             raise TypeError("{} is not a register name. The first element of zero-offset indexed address "
 #                             "must be a register name".format(r))
 #         return ZeroOffsetIndexed(r)
 #
 #     elif len(operand) == 2:
 #         r, offset = operand
-#         if not isinstance(r, RegisterName):
+#         if not isinstance(r, Register):
 #             raise TypeError("{} is not a register name. The first element of zero-offset indexed address "
 #                             "must be a register name".format(r))
 #         if r == PCR:
@@ -214,7 +220,7 @@ def single(iterable):
 #
 #     elif len(operand == 3):
 #         # Pre-/Post- Increment/Decrement
-#         (Integral, RegisterName, Integral)
+#         (Integral, Register, Integral)
 #
 #     else:
 #         raise TypeError("Indexed addressing mode can have only 1, 2 or 3 arguments.")
