@@ -1,8 +1,10 @@
 import reprlib
 import types
+import weakref
 from functools import singledispatch
 
-from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers
+from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
+    Relative
 from asm68.ast import MNEMONIC_TO_AST
 from asm68.label import Label
 from numbers import Integral
@@ -14,68 +16,41 @@ class AsmDsl:
 
     def __init__(self):
         self._statements = []
+        self._label_statement_index = {}
 
-    def __call__(self, mnemonic, operand=None):
+    def __call__(self, mnemonic, operand=None, comment='', *, label=None):
+
+        if label is not None:
+            self._label_statement_index[label] = len(self._statements)
 
         operand_node = parse_operand(operand)
 
         if mnemonic not in MNEMONIC_TO_AST:
             raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
-        statement_node = MNEMONIC_TO_AST[mnemonic](operand_node)
+        statement_node = MNEMONIC_TO_AST[mnemonic](operand_node, comment)
         self._statements.append(statement_node)
 
-    @property
-    def statements(self):
-        return tuple(self._statements)
+    def __getattr__(self, name):
+        return Labeller(self, name=name)
 
 
-# class AsmDsl:
-#
-#     def __init__(self):
-#         self._labels = {}
-#
-#     def __call__(self, opcode, *args):
-#         if len(args) == 1:
-#             if isinstance(args[0], str):
-#                 operand = None
-#                 comment = args[0]
-#             else:
-#                 operand = args[0]
-#                 comment = ""
-#         elif len(args) == 2:
-#             operand, comment = args
-#         else:
-#             raise TypeError("Incorrect argument types.")
-#
-#         if not isinstance(comment, str):
-#             raise TypeError("Comment must be a string")
-#
-#         address = self._asm(opcode, operand, comment)
-#         return address
-#
-#
-#     def _asm(self, opcode, operand, comment):
-#         # Create a statement
-#         if opcode not in OPCODES:
-#             raise ValueError("No such opcde: {}".format(opcode))
-#
-#         parse_operand(operand)
-#
-#         return address
-#
-#     def __getattr__(self, name):
-#         return Labeller(self, label=name)
-#
-# class Labeller:
-#
-#     def __init__(self, asm, label):
-#         self._asm = asm
-#         self._label = label
-#
-#     def __call__(self, *args, **kwargs):
-#         address = self._asm(*args, **kwargs)
-#         self._asm._labels[self._label] = address
-#         return address
+class Labeller(Label):
+
+    def __init__(self, asm, name):
+        super().__init__(name)
+        self._asm = weakref.ref(asm)
+
+    def __call__(self, *args, **kwargs):
+        asm = self._asm()
+        if asm is None:
+            raise RuntimeError("AsmDsl instance no longer available.")
+        return asm(*args, label=self.name, **kwargs)
+
+def statements(asm):
+    return tuple(asm._statements)
+
+def statement_index(asm, label):
+    return asm._label_statement_index[label]
 
 
 @singledispatch
@@ -91,9 +66,16 @@ def _(operand):
 def _(operand):
     return Immediate(operand)
 
-@parse_operand.register(Integral)
+@parse_operand.register(str)
 def _(operand):
-    return Immediate(operand)
+    try:
+        buffer = operand.encode('ascii')
+    except UnicodeEncodeError as e:
+        raise ValueError("Immediate string operand must contain an ASCII character. Got {!r}".format(operand))
+
+    byte = single(buffer)
+
+    return Immediate(byte)
 
 @parse_operand.register(Set)
 def _(operand):
@@ -123,6 +105,19 @@ def _(operand):
     item = single(operand)
     return parse_indirect_operand(item)
 
+@parse_operand.register(dict)
+def _(operand):
+    offset, register = single(operand.items())
+    if not isinstance(offset, Integral):
+        raise TypeError("Expected integer offset. Got {}".format(offset))
+    if not isinstance(register, Register):
+        raise TypeError("{} is not a register".format(register))
+    return Indexed(register=register, offset=offset)
+
+@parse_operand.register(Label)
+def _(operand):
+    # TODO: Label is not an addressing mode, so this should be replaced with Relative or ExtendedDirect depending on what the instruction supports
+    return operand
 
 
 @singledispatch

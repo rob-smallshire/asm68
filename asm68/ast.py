@@ -1,19 +1,19 @@
 from frozendict import frozendict
 
 from asm68.mnemonics import *
-from asm68.opcodes import OPCODES, ADDRESSING_MODE_CODES
+from asm68.opcodes import OPCODES
 
 
 class Statement:
 
     mnemonic = None
 
-    def __init__(self, operand):
-        addr_mode_code = ADDRESSING_MODE_CODES[type(operand)]
-        if not addr_mode_code in OPCODES[self.mnemonic]:
+    def __init__(self, operand, comment=''):
+        if OPCODES[self.mnemonic].keys().isdisjoint(operand.codes):
             raise TypeError("Invalid {} addressing mode for {}"
                             .format((type(operand).__name__).lower(), self.mnemonic))
         self._operand = operand
+        self._comment = comment
 
     def __repr__(self):
         return "{}({!r})".format(self.__class__.__name__, self._operand)
@@ -23,11 +23,18 @@ class Statement:
             return NotImplemented
         return self._is_equal(rhs)
 
+    def __hash__(self):
+        return hash((self.mnemonic, self.operand, self.comment))
+
     def _is_equal(self, rhs):
-        return self._operand == rhs._operand
+        return (self.mnemonic == rhs.mnemonic) and (self._operand == rhs._operand) and (self._comment == rhs._comment)
 
     @property
     def operand(self):
+        return self._operand
+
+    @property
+    def comment(self):
         return self._operand
 
 
@@ -97,6 +104,10 @@ class Bita(Statement):
 
 class Bitb(Statement):
     mnemonic = BITB
+
+
+class Blo(Statement):
+    mnemonic = BLO
 
 
 class Clra(Statement):
@@ -453,6 +464,7 @@ MNEMONIC_TO_AST = frozendict({
     ASR: Asr,
     BITA: Bita,
     BITB: Bitb,
+    BLO: Blo,
     CLRA: Clra,
     CLRB: Clrb,
     CLR: Clr,

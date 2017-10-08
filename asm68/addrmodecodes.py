@@ -1,0 +1,6 @@
+INH = "Inherent"
+IMM = "Immediate"
+DIR = "Direct"
+IDX = "Indexed"
+EXT = "Extended"
+REL = "Relative"

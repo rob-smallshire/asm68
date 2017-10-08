@@ -1,9 +1,12 @@
+from asm68.addrmodecodes import EXT, REL
+
 
 class Label:
 
+    codes = {REL, EXT}
+
     def __init__(self, name):
         self._name = name
-        self._key = (self.__class__, self._name)
 
     @property
     def name(self):
@@ -15,7 +18,7 @@ class Label:
     def __eq__(self, rhs):
         if not isinstance(rhs, Label):
             return NotImplemented
-        return self._key == rhs._key
+        return self._name == rhs._name
 
     def __hash__(self):
-        return hash(self._key)
+        return hash(self._name)
