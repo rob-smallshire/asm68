@@ -18,7 +18,20 @@ class AsmDsl:
         self._statements = []
         self._label_statement_index = {}
 
-    def __call__(self, mnemonic, operand=None, comment='', *, label=None):
+    def __call__(self, mnemonic, *args, label=None):
+        operand = None
+        comment = ""
+        if len(args) == 0:
+            pass
+        elif len(args) == 1:
+            if isinstance(args[0], str):
+                comment = args[0]
+            else:
+                operand = args[0]
+        elif len(args) == 2:
+            operand, comment = args
+        else:
+            raise TypeError("")
 
         if label is not None:
             self._label_statement_index[label] = len(self._statements)
@@ -66,14 +79,12 @@ def _(operand):
 def _(operand):
     return Immediate(operand)
 
-@parse_operand.register(str)
+@parse_operand.register(bytes)
 def _(operand):
     try:
-        buffer = operand.encode('ascii')
-    except UnicodeEncodeError as e:
-        raise ValueError("Immediate string operand must contain an ASCII character. Got {!r}".format(operand))
-
-    byte = single(buffer)
+        byte = single(operand)
+    except ValueError as ve:
+        raise ValueError("Immediate string operand must contain an single ASCII character. Got {} in {!r}".format(len(operand), operand)) from ve
 
     return Immediate(byte)
 

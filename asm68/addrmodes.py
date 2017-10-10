@@ -26,7 +26,6 @@ class Immediate:
 
     def __init__(self, value):
         self._value = value
-        self._key = (self.__class__, self._value)
 
     @property
     def value(self):
@@ -38,10 +37,10 @@ class Immediate:
     def __eq__(self, rhs):
         if not isinstance(rhs, self.__class__):
             return NotImplemented
-        return self._key == rhs._key
+        return self._value == rhs._value
 
     def __hash__(self):
-        return hash(self._key)
+        return hash(self._value)
 
 
 class Registers:
@@ -76,7 +75,6 @@ class PageDirect:
             raise ValueError("Invalid page direct address 0x{:X}. "
                              "Must be one byte 0x00-0xFF.".format(address))
         self._address = address
-        self._key = (self.__class__, self._address)
 
     @property
     def address(self):
@@ -88,10 +86,10 @@ class PageDirect:
     def __eq__(self, rhs):
         if not isinstance(rhs, self.__class__):
             return NotImplemented
-        return self._key == rhs._key
+        return self._address == rhs._address
 
     def __hash__(self):
-        return hash(self._key)
+        return hash(self._address)
 
 
 class ExtendedDirect:
