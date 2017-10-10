@@ -1,90 +1,95 @@
-from pytest import raises
-
-from asm68.asmdsl import parse_operand
-from asm68.label import Label
-from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect
+from asm68.asmdsl import AsmDsl, statements
+from asm68.assembler import assemble
+from asm68.mnemonics import *
 
 
-def test_none_returns_inherent_addressing_mode():
-    operand = None
-    r = parse_operand(operand)
-    assert isinstance(r, Inherent)
+def test_leventhal_4_1__8_bit_data_transfer():
+    asm = AsmDsl()
+    asm     (   LDA,    {0x40},     "GET DATA"                  )
+    asm     (   STA,    {0x41},     "TRANSFER to NEW LOCATION"  )
+    asm     (   SWI                                             )
 
-def test_bare_integer_returns_immediate_addressing_mode():
-    operand = 0x30
-    r = parse_operand(operand)
-    assert isinstance(r, Immediate)
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        '96 40'
+        '97 41'
+        '3F')
 
-def test_value_stored_in_immediate_addressing_mode():
-    operand = 0x42
-    r = parse_operand(operand)
-    assert r.value == operand
+def test_leventhal_4_2__8_bit_addition():
+    asm = AsmDsl()
+    asm     (   LDA,    {0x40},     "GET FIRST OPERAND"         )
+    asm     (   ADDA,   {0x41},     "ADD SECOND OPERAND"        )
+    asm     (   STA,    {0x42},     "STORE RESULT"              )
+    asm     (   SWI                                             )
 
-def test_set_with_one_byte_value_returns_page_direct_addressing_mode():
-    operand = {0x30}
-    r = parse_operand(operand)
-    assert isinstance(r, PageDirect)
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        '96 40'
+        '9B 41'
+        '97 42'
+        '3F')
 
-def test_address_stored_in_page_direct_addressing_mode():
-    address = 0x78
-    operand = {address}
-    r = parse_operand(operand)
-    assert r.address == address
+def test_leventhal_4_3__shift_left_1_bit():
+    asm = AsmDsl()
+    asm     (   LDB,    {0x40},     "GET DATA"                  )
+    asm     (   ASLB,               "SHIFT LEFT"                )
+    asm     (   STB,    {0x41},     "STORE RESULT"              )
+    asm     (   SWI                                             )
 
-def test_set_with_negative_address_raises_value_error():
-    operand = {-1}
-    with raises(ValueError):
-        parse_operand(operand)
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        'D6 40'
+        '58'
+        'D7 41'
+        '3F')
 
-def test_empty_set_raises_value_error():
-    operand = set()
-    with raises(ValueError):
-        parse_operand(operand)
+def test_leventhal_4_4__8_bit_addition():
+    asm = AsmDsl()
+    asm     (   LDA,    {0x40},     "GET DATA"                  )
+    asm     (   ANDA,   0b00001111, "MASK OUT FOR MSB'S"        )
+    asm     (   STA,    {0x41},     "STORE RESULT"              )
+    asm     (   SWI                                             )
 
-def test_set_with_multiple_items_raises_value_error():
-    operand = {0x1C, 0xD5}
-    with raises(ValueError):
-        parse_operand(operand)
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        '96 40'
+        '84 0F'
+        '97 41'
+        '3F')
 
-def test_set_with_two_byte_value_returns_extended_direct_addressing_mode():
-    operand = {0x1C48}
-    r = parse_operand(operand)
-    assert isinstance(r, ExtendedDirect)
+def test_leventhal_4_5__clear_a_memory_location():
+    asm = AsmDsl()
+    asm     (   CLR,    {0x40},     "CLEAR MEMORY LOCATION 0040")
+    asm     (   SWI                                             )
 
-def test_address_stored_in_extended_direct_addressing_mode():
-    address = 0xD58A
-    operand = {address}
-    r = parse_operand(operand)
-    assert r.address == address
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        '0F 40'
+        '3F')
 
-def test_set_with_three_byte_value_raises_value_error():
-    address = 0x010000
-    operand = {address}
-    with raises(ValueError):
-        parse_operand(operand)
+def test_leventhal_4_6__byte_disassembly():
+    asm = AsmDsl()
+    asm     (   LDA,    {0x40},     "GET DATA"                  )
+    asm     (   ANDA,   0b00001111, "MASK OFF MSB'S"            )
+    asm     (   STA,    {0x42},     "STORE LSB'S"               )
+    asm     (   LDA,    {0x40},     "RELOAD DATA"               )
+    asm     (   LSRA,               "SHIFT MSB'S TO LEAST"      )
+    asm     (   LSRA,               "SIGNIFICANT POSITIONS"     )
+    asm     (   LSRA,               "AND CLEAR OTHER"           )
+    asm     (   LSRA,               "POSITIONS"                 )
+    asm     (   STA,    {0x41},     "STORE MSB'S"               )
+    asm     (   SWI                                             )
 
-def test_set_with_label_returns_extended_direct_addressing_mode():
-    address = Label('loop')
-    operand = {address}
-    r = parse_operand(operand)
-    assert r.address == address
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        '96 40'
+        '84 0F'
+        '97 42'
+        '96 40'
+        '44'
+        '44'
+        '44'
+        '44'
+        '97 41'
+        '3F')
 
-def test_set_with_string_raises_type_error():
-    address = 'hello'
-    operand = {address}
-    with raises(TypeError):
-        parse_operand(operand)
-
-def test_list_causes_indirection_for_integer_address():
-    address = 0x3560
-    operand = [{address}]
-    r = parse_operand(operand)
-    assert isinstance(r, ExtendedIndirect)
-
-def test_list_causes_indirection_for_label():
-    address = Label('loop')
-    operand = [{address}]
-    r = parse_operand(operand)
-    assert isinstance(r, ExtendedIndirect)
-
-# TODO: Indexed addressing
