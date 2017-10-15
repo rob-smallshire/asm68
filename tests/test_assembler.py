@@ -93,3 +93,20 @@ def test_leventhal_4_6__byte_disassembly():
         '97 41'
         '3F')
 
+def test_leventhal_4_7__find_larger_of_two_numbers():
+    asm = AsmDsl()
+    asm        (   LDA,    {0x40},     "GET FIRST OPERAND"         )
+    asm        (   CMPA,   {0x41},     "IS SECOND OPERAND LARGER?" )
+    asm        (   BHS,    asm.stres                               )
+    asm        (   LDA,    {0x41},     "YES,GET SECOND OPERAND"    )
+    asm .stres (   STA,    {0x42},     "STORE LARGER OPERAND"      )
+    asm        (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        '96 40'
+        '91 41'
+        '24 02'
+        '96 41'
+        '97 42'
+        '3F')

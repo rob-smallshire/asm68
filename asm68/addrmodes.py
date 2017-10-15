@@ -1,6 +1,6 @@
 from numbers import Integral
 
-from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL
+from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8
 from asm68.label import Label
 
 
@@ -176,7 +176,7 @@ class Indexed:
 
 class Relative:
 
-    codes = {REL}
+    codes = {REL8}
 
     def __init__(self, offset):
         self._offset = offset

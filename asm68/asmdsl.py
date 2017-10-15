@@ -40,7 +40,7 @@ class AsmDsl:
 
         if mnemonic not in MNEMONIC_TO_AST:
             raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
-        statement_node = MNEMONIC_TO_AST[mnemonic](operand_node, comment)
+        statement_node = MNEMONIC_TO_AST[mnemonic](operand_node, comment, label)
         self._statements.append(statement_node)
 
     def __getattr__(self, name):
