@@ -21,6 +21,7 @@ class Assembler:
         # TODO: Store addresses and code separately, so the code can be cleared.
         self._code = []  # A list of (bytes) pairs, one item per statement. (address, code)
         self._label_addresses = {}  # Maps label names to items in _code
+        self._more_passes_required = True
 
     @property
     def pos(self):
@@ -35,8 +36,10 @@ class Assembler:
         return b''.join(self._code)
 
     def assemble(self, statements):
-        # Do two-pass assembly
-        for i in range(2):
+        # Do multi-pass assembly
+        i = 0
+        while self._more_passes_required:
+            self._more_passes_required = False
             self._code.clear()
             self._pos = 0
             for statement in statements:
@@ -57,6 +60,7 @@ class Assembler:
                 opcode = opcodes[opcode_key]
                 self._opcode_bytes = (opcode, ) if opcode <= 0xFF else (hi(opcode), lo(opcode))
                 self._extend(self._opcode_bytes + assemble_operand(operand, opcode_key, self))
+            i += 1
 
     def _label_statement(self, statement, i):
         if statement.label is not None:
@@ -106,6 +110,7 @@ def _(operand, opcode_key, asm):
 
     else:
         unsigned_offset = 0
+        asm._more_passes_required = True
 
     return (unsigned_offset, )
 
