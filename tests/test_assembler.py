@@ -1,6 +1,7 @@
 from asm68.asmdsl import AsmDsl, statements
 from asm68.assembler import assemble
 from asm68.mnemonics import *
+from asm68.registers import B, X
 
 
 def test_leventhal_4_1__8_bit_data_transfer():
@@ -108,5 +109,35 @@ def test_leventhal_4_7__find_larger_of_two_numbers():
         '91 41'
         '24 02'
         '96 41'
+        '97 42'
+        '3F')
+
+def test_levethal_4_8__sixteen_bit_addition():
+    asm = AsmDsl()
+    asm         (   LDD,    {0x40},     "GET FIRST 16-BIT NUMBER"   )
+    asm         (   ADDD,   {0x42},     "ADD SECOND 16-BIT NUMBER"  )
+    asm         (   STD,    {0x44},     "STORE 16-BIT RESULT"       )
+    asm         (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        'DC 40'
+        'D3 42'
+        'DD 44'
+        '3F')
+
+def test_levethal_4_9__table_of_squares():
+    asm = AsmDsl()
+    asm         (   LDB,    {0x41},     "GET DATA"                  )
+    asm         (   LDX,    0x50,       "GET BASE ADDRESS"          )
+    asm         (   LDA,    {B:X},      "GET SQUARE OF DATA"        )
+    asm         (   STA,    {0x42},     "STORE SQUARE"              )
+    asm         (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code == bytes.fromhex(
+        'D6 41'
+        '8E 0050'
+        'A6 85'
         '97 42'
         '3F')

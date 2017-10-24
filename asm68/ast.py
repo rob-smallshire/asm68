@@ -2,6 +2,7 @@ from frozendict import frozendict
 
 from asm68.mnemonics import *
 from asm68.opcodes import OPCODES
+from asm68.registers import A, B, D, S, U, X, Y, CC
 
 
 class Statement:
@@ -48,42 +49,52 @@ class Abx(Statement):
 
 
 class Adca(Statement):
+    inherent_register = A
     mnemonic = ADCA
 
 
 class Adcb(Statement):
+    inherent_register = B
     mnemonic = ADCB
 
 
 class Adda(Statement):
+    inherent_register = A
     mnemonic = ADDA
 
 
 class Addb(Statement):
+    inherent_register = B
     mnemonic = ADDB
 
 
 class Addd(Statement):
+    inherent_register = D
     mnemonic = ADDD
 
 
 class Anda(Statement):
+    inherent_register = A
     mnemonic = ANDA
 
 
 class Andb(Statement):
+    inherent_register = B
     mnemonic = ANDB
 
 
 class Andcc(Statement):
+    inherent_register = CC
     mnemonic = ANDCC
 
 
 class Asla(Statement):
+    inherent_register = A
     mnemonic = ASLA
 
 
 class Aslb(Statement):
+    inherent_register = B
     mnemonic = ASLB
 
 
@@ -92,10 +103,12 @@ class Asl(Statement):
 
 
 class Asra(Statement):
+    inherent_register = A
     mnemonic = ASRA
 
 
 class Asrb(Statement):
+    inherent_register = B
     mnemonic = ASRB
 
 
@@ -104,10 +117,12 @@ class Asr(Statement):
 
 
 class Bita(Statement):
+    inherent_register = A
     mnemonic = BITA
 
 
 class Bitb(Statement):
+    inherent_register = B
     mnemonic = BITB
 
 
@@ -120,10 +135,12 @@ class Blo(Statement):
 
 
 class Clra(Statement):
+    inherent_register = A
     mnemonic = CLRA
 
 
 class Clrb(Statement):
+    inherent_register = B
     mnemonic = CLRB
 
 
@@ -132,38 +149,47 @@ class Clr(Statement):
 
 
 class Cmpa(Statement):
+    inherent_register = A
     mnemonic = CMPA
 
 
 class Cmpb(Statement):
+    inherent_register = B
     mnemonic = CMPB
 
 
 class Cmpd(Statement):
+    inherent_register = D
     mnemonic = CMPD
 
 
 class Cmps(Statement):
+    inherent_register = S
     mnemonic = CMPS
 
 
 class Cmpu(Statement):
+    inherent_register = U
     mnemonic = CMPU
 
 
 class Cmpx(Statement):
+    inherent_register = X
     mnemonic = CMPX
 
 
 class Cmpy(Statement):
+    inherent_register = Y
     mnemonic = CMPY
 
 
 class Coma(Statement):
+    inherent_register = A
     mnemonic = COMA
 
 
 class Comb(Statement):
+    inherent_register = B
     mnemonic = COMB
 
 
@@ -180,10 +206,12 @@ class Daa(Statement):
 
 
 class Deca(Statement):
+    inherent_register = A
     mnemonic = DECA
 
 
 class Decb(Statement):
+    inherent_register = B
     mnemonic = DECB
 
 
@@ -192,10 +220,12 @@ class Dec(Statement):
 
 
 class Eora(Statement):
+    inherent_register = A
     mnemonic = EORA
 
 
 class Eorb(Statement):
+    inherent_register = B
     mnemonic = EORB
 
 
@@ -204,10 +234,12 @@ class Exg(Statement):
 
 
 class Inca(Statement):
+    inherent_register = A
     mnemonic = INCA
 
 
 class Incb(Statement):
+    inherent_register = B
     mnemonic = INCB
 
 
@@ -224,54 +256,67 @@ class Jsr(Statement):
 
 
 class Lda(Statement):
+    inherent_register = A
     mnemonic = LDA
 
 
 class Ldb(Statement):
+    inherent_register = B
     mnemonic = LDB
 
 
 class Ldd(Statement):
+    inherent_register = D
     mnemonic = LDD
 
 
 class Lds(Statement):
+    inherent_register = S
     mnemonic = LDS
 
 
 class Ldu(Statement):
+    inherent_register = U
     mnemonic = LDU
 
 
 class Ldx(Statement):
+    inherent_register = X
     mnemonic = LDX
 
 
 class Ldy(Statement):
+    inherent_register = Y
     mnemonic = LDY
 
 
 class Leas(Statement):
+    inherent_register = S
     mnemonic = LEAS
 
 
 class Leau(Statement):
+    inherent_register = U
     mnemonic = LEAU
 
 
 class Leax(Statement):
+    inherent_register = X
     mnemonic = LEAX
 
 
 class Leay(Statement):
+    inherent_register = Y
     mnemonic = LEAY
 
 
 class Lsla(Statement):
+    inherent_register = A
     mnemonic = LSLA
 
 
 class Lslb(Statement):
+    inherent_register = B
     mnemonic = LSLB
 
 
@@ -280,10 +325,12 @@ class Lsl(Statement):
 
 
 class Lsra(Statement):
+    inherent_register = A
     mnemonic = LSRA
 
 
 class Lsrb(Statement):
+    inherent_register = B
     mnemonic = LSRB
 
 
@@ -296,10 +343,12 @@ class Mul(Statement):
 
 
 class Nega(Statement):
+    inherent_register = A
     mnemonic = NEGA
 
 
 class Negb(Statement):
+    inherent_register = B
     mnemonic = NEGB
 
 
@@ -312,14 +361,17 @@ class Nop(Statement):
 
 
 class Ora(Statement):
+    inherent_register = A
     mnemonic = ORA
 
 
 class Orb(Statement):
+    inherent_register = B
     mnemonic = ORB
 
 
 class Orcc(Statement):
+    inherent_register = CC
     mnemonic = ORCC
 
 
@@ -340,10 +392,12 @@ class Pulu(Statement):
 
 
 class Rola(Statement):
+    inherent_register = A
     mnemonic = ROLA
 
 
 class Rolb(Statement):
+    inherent_register = B
     mnemonic = ROLB
 
 
@@ -352,10 +406,12 @@ class Rol(Statement):
 
 
 class Rora(Statement):
+    inherent_register = A
     mnemonic = RORA
 
 
 class Rorb(Statement):
+    inherent_register = B
     mnemonic = RORB
 
 
@@ -372,10 +428,12 @@ class Rts(Statement):
 
 
 class Sbca(Statement):
+    inherent_register = A
     mnemonic = SBCA
 
 
 class Sbcb(Statement):
+    inherent_register = B
     mnemonic = SBCB
 
 
@@ -384,42 +442,52 @@ class Sex(Statement):
 
 
 class Sta(Statement):
+    inherent_register = A
     mnemonic = STA
 
 
 class Stb(Statement):
+    inherent_register = B
     mnemonic = STB
 
 
 class Std(Statement):
+    inherent_register = D
     mnemonic = STD
 
 
 class Sts(Statement):
+    inherent_register = S
     mnemonic = STS
 
 
 class Stu(Statement):
+    inherent_register = U
     mnemonic = STU
 
 
 class Stx(Statement):
+    inherent_register = X
     mnemonic = STX
 
 
 class Sty(Statement):
+    inherent_register = Y
     mnemonic = STY
 
 
 class Suba(Statement):
+    inherent_register = A
     mnemonic = SUBA
 
 
 class Subb(Statement):
+    inherent_register = B
     mnemonic = SUBB
 
 
 class Subd(Statement):
+    inherent_register = D
     mnemonic = SUBD
 
 
@@ -444,10 +512,12 @@ class Tfr(Statement):
 
 
 class Tsta(Statement):
+    inherent_register = A
     mnemonic = TSTA
 
 
 class Tstb(Statement):
+    inherent_register = B
     mnemonic = TSTB
 
 

@@ -110,7 +110,7 @@ def test_register_seven_address_assembly():
 def test_immediate_address_assembly():
     asm = AsmDsl()
     asm( LDA, 0x30 )
-    assert statements(asm) == (Lda(Immediate(0x30)), )
+    assert statements(asm) == (Lda(Immediate(0x30)),)
 
 def test_page_direct_address_assembly():
     asm = AsmDsl()

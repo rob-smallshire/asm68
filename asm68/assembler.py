@@ -1,10 +1,12 @@
 from functools import singledispatch
 
 from asm68.addrmodecodes import REL8, REL16
-from asm68.addrmodes import PageDirect, Inherent, Immediate
+from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed)
 from asm68.asmdsl import single
 from asm68.label import Label
 from asm68.opcodes import OPCODES
+from asm68.registers import X, Y, U, S, A, B, D, E, F, W
+
 
 def assemble(statements, origin=None):
     asm = Assembler(origin)
@@ -59,7 +61,7 @@ class Assembler:
 
                 opcode = opcodes[opcode_key]
                 self._opcode_bytes = (opcode, ) if opcode <= 0xFF else (hi(opcode), lo(opcode))
-                self._extend(self._opcode_bytes + assemble_operand(operand, opcode_key, self))
+                self._extend(self._opcode_bytes + assemble_operand(operand, opcode_key, self, statement))
             i += 1
 
     def _label_statement(self, statement, i):
@@ -77,23 +79,29 @@ class Assembler:
 
 
 @singledispatch
-def assemble_operand(operand, opcode_key, asm):
+def assemble_operand(operand, opcode_key, asm, statement):
     raise NotImplementedError("Operand {} could not be assembled".format(operand))
 
 @assemble_operand.register(Inherent)
-def _(operand, opcode_key, asm):
+def _(operand, opcode_key, asm, statement):
     return ()
 
 @assemble_operand.register(Immediate)
-def _(operand, opcode_key, asm):
-    return (operand.value, )
+def _(operand, opcode_key, asm, statement):
+    if statement.inherent_register.width == 1:
+        return (operand.value, )
+    elif statement.inherent_register.width == 2:
+        return (hi(operand.value), lo(operand.value))
+    else:
+        assert False, "Unhandled immediate value width of {} bytes".format(
+            statement.inherent_register.width)
 
 @assemble_operand.register(PageDirect)
-def _(operand, opcode_key, asm):
+def _(operand, opcode_key, asm, statement):
     return (operand.address, )
 
 @assemble_operand.register(Label)
-def _(operand, opcode_key, asm):
+def _(operand, opcode_key, asm, statement):
     # If we know the address of the label, use it
     if operand.name in asm._label_addresses:
         target_address = asm._label_addresses[operand.name]
@@ -113,6 +121,34 @@ def _(operand, opcode_key, asm):
         asm._more_passes_required = True
 
     return (unsigned_offset, )
+
+RR = {X: 0b00,
+      Y: 0b01,
+      U: 0b10,
+      S: 0b11}
+
+ACCUMULATOR_OFFSET_POST_BYTE = {
+    A: 0b10000110,
+    B: 0b10000101,
+    D: 0b10001011,
+    E: 0b10000111,
+    F: 0b10001010,
+    W: 0b10001110
+}
+
+@assemble_operand.register(Indexed)
+def _(operand, opcode_key, asm, statement):
+    print(operand)
+    try:
+        rr = RR[operand.base]
+    except KeyError:
+        raise ValueError("Cannot use {} as a base for indexed addressing.".format(operand.base))
+    if operand.offset in ACCUMULATOR_OFFSET_POST_BYTE:
+        # Accumulator offset
+        post_byte = ACCUMULATOR_OFFSET_POST_BYTE[operand.offset]
+        post_byte |= rr << 5
+        return (post_byte, )
+
 
 
 def twos_complement(n, num_bits):

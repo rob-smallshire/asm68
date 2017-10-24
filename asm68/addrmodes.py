@@ -158,20 +158,28 @@ class Indexed:
 
     codes = {IDX}
 
-    def __init__(self, register, offset):
-        self._register = register
+    def __init__(self, base, offset):
+        self._base = base
         self._offset = offset
 
+    @property
+    def base(self):
+        return self._base
+
+    @property
+    def offset(self):
+        return self._offset
+
     def __repr__(self):
-        return "{}({}, {})".format(self.__class__.__name__, self._register, self._offset)
+        return "{}(base={}, offset={})".format(self.__class__.__name__, self._base, self._offset)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, self.__class__):
             return NotImplemented
-        return (self._register == rhs._register) and (self._offset == rhs._offset)
+        return (self._base == rhs._base) and (self._offset == rhs._offset)
 
     def __hash__(self):
-        return hash((self._register, self._offset))
+        return hash((self._base, self._offset))
 
 
 class Relative:

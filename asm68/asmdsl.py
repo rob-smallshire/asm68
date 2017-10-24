@@ -84,7 +84,7 @@ def _(operand):
     try:
         byte = single(operand)
     except ValueError as ve:
-        raise ValueError("Immediate string operand must contain an single ASCII character. Got {} in {!r}".format(len(operand), operand)) from ve
+        raise ValueError("Immediate8 string operand must contain an single ASCII character. Got {} in {!r}".format(len(operand), operand)) from ve
 
     return Immediate(byte)
 
@@ -118,12 +118,12 @@ def _(operand):
 
 @parse_operand.register(dict)
 def _(operand):
-    offset, register = single(operand.items())
-    if not isinstance(offset, Integral):
+    offset, base = single(operand.items())
+    if not isinstance(offset, (Register, Integral)):
         raise TypeError("Expected integer offset. Got {}".format(offset))
-    if not isinstance(register, Register):
-        raise TypeError("{} is not a register".format(register))
-    return Indexed(register=register, offset=offset)
+    if not isinstance(base, Register):
+        raise TypeError("{} is not a base".format(base))
+    return Indexed(base=base, offset=offset)
 
 @parse_operand.register(Label)
 def _(operand):
@@ -172,7 +172,7 @@ def single(iterable):
 # @parse_operand.register(Integral)
 # def immediate(operand):
 #     # TODO: Validation
-#     return Immediate(operand)
+#     return Immediate8(operand)
 #
 #
 # @parse_operand.register(Set)

@@ -14,7 +14,7 @@ import sys
 
 # Addressing modes
 INH = "Inherent"
-IMM = "Immediate"
+IMM = "Immediate8"
 DIR = "Direct"
 IND = "Indexed"
 EXT = "Extended"
