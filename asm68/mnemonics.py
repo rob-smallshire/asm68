@@ -121,3 +121,5 @@ TFR = Mnemonic('TFR')
 TSTA = Mnemonic('TSTA')
 TSTB = Mnemonic('TSTB')
 TST = Mnemonic('TST')
+
+ORG = Mnemonic('ORG')

@@ -3,6 +3,8 @@ from functools import singledispatch
 from asm68.addrmodecodes import REL8, REL16
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed)
 from asm68.asmdsl import single
+from asm68.directives import Directive, Org
+from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES
 from asm68.registers import X, Y, U, S, A, B, D, E, F, W
@@ -15,12 +17,9 @@ def assemble(statements, origin=None):
 
 class Assembler:
 
-    def __init__(self, origin=None):
-        if origin is None:
-            origin = 0
+    def __init__(self, origin=0):
         self._origin = origin
         self._pos = self._origin
-        # TODO: Store addresses and code separately, so the code can be cleared.
         self._code = []  # A list of (bytes) pairs, one item per statement. (address, code)
         self._label_addresses = {}  # Maps label names to items in _code
         self._more_passes_required = True
@@ -46,22 +45,7 @@ class Assembler:
             self._pos = 0
             for statement in statements:
                 self._label_statement(statement, i)
-
-                operand = statement.operand
-
-                try:
-                    opcodes = OPCODES[statement.mnemonic]
-                except KeyError:
-                    raise RuntimeError("No opcodes for {}".format(statement.mnemonic))
-
-                try:
-                    opcode_key = single(operand.codes & opcodes.keys())
-                except ValueError:
-                    raise RuntimeError("{} does not support {} addressing modes.".format(statement.mnemonic, operand.codes))
-
-                opcode = opcodes[opcode_key]
-                self._opcode_bytes = (opcode, ) if opcode <= 0xFF else (hi(opcode), lo(opcode))
-                self._extend(self._opcode_bytes + assemble_operand(operand, opcode_key, self, statement))
+                assemble_statement(statement, self)
             i += 1
 
     def _label_statement(self, statement, i):
@@ -76,6 +60,34 @@ class Assembler:
                     else:
                         print("More passes required.")
             self._label_addresses[statement.label] = self._pos
+
+@singledispatch
+def assemble_statement(statement, asm):
+    raise NotImplementedError("Statement {} could not be assembled").format(statement)
+
+@assemble_statement.register(Instruction)
+def _(statement, asm):
+    operand = statement.operand
+    try:
+        opcodes = OPCODES[statement.mnemonic]
+    except KeyError:
+        raise RuntimeError("No opcodes for {}".format(statement.mnemonic))
+    try:
+        opcode_key = single(operand.codes & opcodes.keys())
+    except ValueError:
+        raise RuntimeError("{} does not support {} addressing modes.".format(statement.mnemonic, operand.codes))
+    opcode = opcodes[opcode_key]
+    asm._opcode_bytes = (opcode,) if opcode <= 0xFF else (hi(opcode), lo(opcode))
+    asm._extend(asm._opcode_bytes + assemble_operand(operand, opcode_key, asm, statement))
+
+@assemble_statement.register(Org)
+def _(statement, asm):
+    operand = statement.operand
+    if not isinstance(operand, Immediate):
+        raise TypeError("ORG value must be immediate.")
+    asm._pos = operand.value
+
+
 
 
 @singledispatch
@@ -138,7 +150,6 @@ ACCUMULATOR_OFFSET_POST_BYTE = {
 
 @assemble_operand.register(Indexed)
 def _(operand, opcode_key, asm, statement):
-    print(operand)
     try:
         rr = RR[operand.base]
     except KeyError:
