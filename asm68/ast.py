@@ -109,4 +109,5 @@ MNEMONIC_TO_AST = frozendict({
     TSTB: Tstb,
     TST: Tst,
     ORG: Org,
+    FCB: Fcb,
 })

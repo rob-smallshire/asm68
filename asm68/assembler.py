@@ -1,11 +1,12 @@
 from functools import singledispatch
 
 from collections import defaultdict
+from itertools import islice
 
 from asm68.addrmodecodes import REL8, REL16
-from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed)
+from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed, Integers)
 from asm68.asmdsl import single
-from asm68.directives import Directive, Org
+from asm68.directives import Directive, Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES
@@ -39,8 +40,9 @@ class Assembler:
         # If the origin falls within an existing fragment, reject the change
         self._flatten()
         if self._in_existing_fragment(value):
-            raise ValueError("Origin {:0X4} lies within existing code fragment".format(value))
+            raise ValueError("Origin address 0x{:04X} lies within existing code fragment".format(value))
         self._origin = value
+        self._pos = self._origin
 
     def _in_existing_fragment(self, value):
         return any(value in range(address, len(code[0])) for address, code in self._code.items())
@@ -109,9 +111,20 @@ def _(statement, asm):
     operand = statement.operand
     if not isinstance(operand, Immediate):
         raise TypeError("ORG value must be immediate.")
-    asm._pos = operand.value
+    asm.origin = operand.value
 
-
+@assemble_statement.register(Fcb)
+def _(statement, asm):
+    operand = statement.operand
+    if not isinstance(operand, Integers):
+        raise TypeError("FCB value must be integers")
+    try:
+        b = bytes(operand)
+    except ValueError as e:
+        g = ((i, v) for i, v in enumerate(operand) if not v in range(0, 256))
+        i, v = islice(g, 1)
+        raise ValueError("byte {} at index {} not in range(0, 256)".format(v, i)) from e
+    asm._extend(b)
 
 
 @singledispatch

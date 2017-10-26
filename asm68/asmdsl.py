@@ -1,10 +1,9 @@
 import reprlib
-import types
 import weakref
 from functools import singledispatch
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
-    Relative
+    Relative, Integers
 from asm68.ast import MNEMONIC_TO_AST
 from asm68.label import Label
 from numbers import Integral
@@ -106,10 +105,12 @@ def _(operand):
 
 @parse_operand.register(tuple)
 def _(operand):
-    for item in operand:
-        if not isinstance(item, Register):
-            raise TypeError("{} is not a register".format(item))
-    return Registers(operand)
+    if all(isinstance(item, Register) for item in operand):
+        return Registers(operand)
+    elif all(isinstance(item, Integral) for item in operand):
+        return Integers(operand)
+    else:
+        raise TypeError("{} could not be parsed".format(operand))
 
 @parse_operand.register(list)
 def _(operand):

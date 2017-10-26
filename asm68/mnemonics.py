@@ -123,3 +123,4 @@ TSTB = Mnemonic('TSTB')
 TST = Mnemonic('TST')
 
 ORG = Mnemonic('ORG')
+FCB = Mnemonic('FCB')

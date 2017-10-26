@@ -1,4 +1,4 @@
-from asm68.mnemonics import ORG
+from asm68.mnemonics import (ORG, FCB)
 from asm68.statement import Statement
 
 
@@ -7,3 +7,6 @@ class Directive(Statement):
 
 class Org(Directive):
     mnemonic = ORG
+
+class Fcb(Directive):
+    mnemonic = FCB

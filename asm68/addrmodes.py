@@ -201,3 +201,23 @@ class Relative:
         return hash(self._offset)
 
 
+# TODO: This isn't really an addressing mode
+class Integers:
+
+    def __init__(self, items):
+        self._items = tuple(items)
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, self._items)
+
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._items == rhs._items
+
+    def __hash__(self):
+        return hash(self._items)
+
+    def __getitem__(self, index):
+        return self._items[index]
+
