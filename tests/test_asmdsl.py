@@ -2,7 +2,7 @@ from pytest import raises
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed
 from asm68.asmdsl import AsmDsl, statements, statement_index, parse_operand
-from asm68.ast import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
+from asm68.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
 from asm68.label import Label
 from asm68.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS
 from asm68.registers import A, B, PC, U, Y, X, DP, CC

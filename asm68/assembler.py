@@ -1,5 +1,7 @@
 from functools import singledispatch
 
+from collections import defaultdict
+
 from asm68.addrmodecodes import REL8, REL16
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed)
 from asm68.asmdsl import single
@@ -10,7 +12,7 @@ from asm68.opcodes import OPCODES
 from asm68.registers import X, Y, U, S, A, B, D, E, F, W
 
 
-def assemble(statements, origin=None):
+def assemble(statements, origin=0):
     asm = Assembler(origin)
     asm.assemble(statements)
     return asm.object_code()
@@ -20,7 +22,7 @@ class Assembler:
     def __init__(self, origin=0):
         self._origin = origin
         self._pos = self._origin
-        self._code = []  # A list of (bytes) pairs, one item per statement. (address, code)
+        self._code = defaultdict(list)  # A dictionary mapping addresses to code fragments represented as lists of bytes strings.
         self._label_addresses = {}  # Maps label names to items in _code
         self._more_passes_required = True
 
@@ -28,13 +30,35 @@ class Assembler:
     def pos(self):
         return self._pos
 
+    @property
+    def origin(self):
+        return self._origin
+
+    @origin.setter
+    def origin(self, value):
+        # If the origin falls within an existing fragment, reject the change
+        self._flatten()
+        if self._in_existing_fragment(value):
+            raise ValueError("Origin {:0X4} lies within existing code fragment".format(value))
+        self._origin = value
+
+    def _in_existing_fragment(self, value):
+        return any(value in range(address, len(code[0])) for address, code in self._code.items())
+
+    def _flatten(self):
+        self._code = defaultdict(
+            list,
+            ((address, [b''.join(fragments)])
+             for address, fragments in self._code.items()))
+
     def _extend(self, code):
         c = bytes(code)
-        self._code.append(c)
+        self._code[self._origin].append(c)
         self._pos += len(c)
 
     def object_code(self):
-        return b''.join(self._code)
+        self._flatten()
+        return {address: fragments[0] for address, fragments in self._code.items()}
 
     def assemble(self, statements):
         # Do multi-pass assembly
@@ -63,7 +87,7 @@ class Assembler:
 
 @singledispatch
 def assemble_statement(statement, asm):
-    raise NotImplementedError("Statement {} could not be assembled").format(statement)
+    raise NotImplementedError("Statement {} could not be assembled".format(statement))
 
 @assemble_statement.register(Instruction)
 def _(statement, asm):

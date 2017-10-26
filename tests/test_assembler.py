@@ -11,7 +11,7 @@ def test_leventhal_4_1__8_bit_data_transfer():
     asm     (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         '96 40'
         '97 41'
         '3F')
@@ -24,7 +24,7 @@ def test_leventhal_4_2__8_bit_addition():
     asm     (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         '96 40'
         '9B 41'
         '97 42'
@@ -38,7 +38,7 @@ def test_leventhal_4_3__shift_left_1_bit():
     asm     (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         'D6 40'
         '58'
         'D7 41'
@@ -52,7 +52,7 @@ def test_leventhal_4_4__8_bit_addition():
     asm     (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         '96 40'
         '84 0F'
         '97 41'
@@ -64,7 +64,7 @@ def test_leventhal_4_5__clear_a_memory_location():
     asm     (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         '0F 40'
         '3F')
 
@@ -82,7 +82,7 @@ def test_leventhal_4_6__byte_disassembly():
     asm     (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         '96 40'
         '84 0F'
         '97 42'
@@ -104,7 +104,7 @@ def test_leventhal_4_7__find_larger_of_two_numbers():
     asm        (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         '96 40'
         '91 41'
         '24 02'
@@ -120,7 +120,7 @@ def test_levethal_4_8__sixteen_bit_addition():
     asm         (   SWI                                             )
 
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         'DC 40'
         'D3 42'
         'DD 44'
@@ -133,9 +133,9 @@ def test_levethal_4_9__table_of_squares():
     asm         (   LDA,    {B:X},      "GET SQUARE OF DATA"        )
     asm         (   STA,    {0x42},     "STORE SQUARE"              )
     asm         (   SWI                                             )
-
+    asm         (   ORG,    0x50                                    )
     code = assemble(statements(asm))
-    assert code == bytes.fromhex(
+    assert code[0] == bytes.fromhex(
         'D6 41'
         '8E 0050'
         'A6 85'
