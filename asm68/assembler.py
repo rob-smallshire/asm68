@@ -159,7 +159,6 @@ def _(operand, opcode_key, asm, statement):
     # If we know the address of the label, use it
     if operand.name in asm._label_addresses:
         target_address = asm._label_addresses[operand.name]
-
         if opcode_key in branch_opcode_widths:
             operand_bytes_length = branch_opcode_widths[opcode_key]
             offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
