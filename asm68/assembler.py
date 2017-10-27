@@ -3,7 +3,7 @@ from functools import singledispatch
 from collections import defaultdict
 from itertools import islice
 
-from asm68.addrmodecodes import REL8, REL16
+from asm68.addrmodecodes import REL8, REL16, EXT, IMM
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed, Integers)
 from asm68.asmdsl import single
 from asm68.directives import Directive, Org, Fcb
@@ -68,7 +68,7 @@ class Assembler:
         while self._more_passes_required:
             self._more_passes_required = False
             self._code.clear()
-            self._pos = 0
+            self.origin = 0
             for statement in statements:
                 self._label_statement(statement, i)
                 assemble_statement(statement, self)
@@ -149,27 +149,36 @@ def _(operand, opcode_key, asm, statement):
 def _(operand, opcode_key, asm, statement):
     return (operand.address, )
 
+branch_opcode_widths = {
+    REL8: 1,
+    REL16: 2
+}
+
 @assemble_operand.register(Label)
 def _(operand, opcode_key, asm, statement):
     # If we know the address of the label, use it
     if operand.name in asm._label_addresses:
         target_address = asm._label_addresses[operand.name]
 
-        if opcode_key is REL8:
-            operand_bytes_length = 1
-        # elif opcode_key is REL16:
-        #     operand_bytes_length = 2
+        if opcode_key in branch_opcode_widths:
+            operand_bytes_length = branch_opcode_widths[opcode_key]
+            offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
+            unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
+            return (unsigned_offset, )
+        elif opcode_key is IMM:
+            return (hi(target_address), lo(target_address))
+        else:
+            assert False, "Unhandled addressing mode."
+    else:
+        asm._more_passes_required = True
+        if opcode_key in branch_opcode_widths:
+            return (0, )
+        elif opcode_key is IMM:
+            return (0, 0)
         else:
             assert False, "Unhandled addressing mode."
 
-        offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
-        unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
 
-    else:
-        unsigned_offset = 0
-        asm._more_passes_required = True
-
-    return (unsigned_offset, )
 
 RR = {X: 0b00,
       Y: 0b01,

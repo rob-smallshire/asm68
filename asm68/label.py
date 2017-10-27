@@ -1,9 +1,9 @@
-from asm68.addrmodecodes import EXT, REL8
+from asm68.addrmodecodes import REL8, IMM
 
 
 class Label:
 
-    codes = {REL8, EXT}
+    codes = {REL8, IMM}
 
     def __init__(self, name):
         self._name = name
