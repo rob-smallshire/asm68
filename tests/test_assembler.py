@@ -133,7 +133,9 @@ def test_levethal_4_9__table_of_squares():
     asm         (   LDA,    {B:X},      "GET SQUARE OF DATA"        )
     asm         (   STA,    {0x42},     "STORE SQUARE"              )
     asm         (   SWI                                             )
-    asm         (   ORG,    0x50                                    )
+    asm         (   ORG,    0x50,       "TABLE OF SQUARES"          )
+    asm .SQTAB  (   FCB,    (0, 1, 4, 9, 16, 25, 36, 49)            )
+
     code = assemble(statements(asm))
     assert code[0] == bytes.fromhex(
         'D6 41'
@@ -141,3 +143,29 @@ def test_levethal_4_9__table_of_squares():
         'A6 85'
         '97 42'
         '3F')
+
+    assert code[0x50] == bytes.fromhex(
+        '00 01 04 09 10 19 24 31'
+    )
+
+def test_levethal_4_9_modified__table_of_squares():
+    asm = AsmDsl()
+    asm         (   LDB,    {0x41},     "GET DATA"                  )
+    asm         (   LDX,    asm.SQTAB,  "GET BASE ADDRESS"          )
+    asm         (   LDA,    {B:X},      "GET SQUARE OF DATA"        )
+    asm         (   STA,    {0x42},     "STORE SQUARE"              )
+    asm         (   SWI                                             )
+    asm         (   ORG,    0x50,       "TABLE OF SQUARES"          )
+    asm .SQTAB  (   FCB,    (0, 1, 4, 9, 16, 25, 36, 49)            )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        'D6 41'
+        '8E 0050'
+        'A6 85'
+        '97 42'
+        '3F')
+
+    assert code[0x50] == bytes.fromhex(
+        '00 01 04 09 10 19 24 31'
+    )
