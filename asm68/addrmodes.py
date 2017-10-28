@@ -48,6 +48,8 @@ class Registers:
     codes = {IMM}
 
     def __init__(self, registers):
+        if len(registers) < 1:
+            raise ValueError("At least one register must be specified.")
         self._registers = registers
 
     @property
