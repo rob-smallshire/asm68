@@ -1,11 +1,16 @@
+import gc
+from hypothesis import given, assume
+from hypothesis.strategies import lists, integers
 from pytest import raises
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed
 from asm68.asmdsl import AsmDsl, statements, statement_index, parse_operand
+from asm68.ast import MNEMONIC_TO_AST
 from asm68.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
 from asm68.label import Label
-from asm68.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS
+from asm68.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS, Mnemonic
 from asm68.registers import A, B, PC, U, Y, X, DP, CC
+from tests.test_mnemonics import mnemonics
 
 
 def test_none_returns_inherent_addressing_mode():
@@ -162,3 +167,44 @@ def test_refer_to_label():
     asm  .loop  ( ADDA, 0x30 )
     assert asm.loop == Label('loop')
 
+@given(args=lists(min_size=4, elements=integers()))
+def test_incorrect_number_of_arguments(args):
+    asm = AsmDsl()
+    with raises(TypeError):
+        asm(*args)
+
+@given(m=mnemonics())
+def test_unknown_mnemonic_raises_value_error(m):
+    mnemonic = Mnemonic(m)
+    assume(mnemonic not in MNEMONIC_TO_AST)
+    asm = AsmDsl()
+    with raises(ValueError):
+        asm(mnemonic)
+
+def test_garbage_collected_dsl_raises_runtime_error():
+    mnemonic = Mnemonic('FOO')
+    asm = AsmDsl()
+    labeller = asm.label
+    del asm
+    gc.collect()
+    with raises(RuntimeError):
+        labeller(mnemonic)
+
+def test_parse_operand_unsupported_type_raises_not_implemented_error():
+    FOO = Mnemonic('FOO')
+    asm = AsmDsl()
+    with raises(TypeError):
+        asm(FOO, object())
+
+def test_parse_operand_unsupported_indirect_type_raises_not_implemented_error():
+    FOO = Mnemonic('FOO')
+    asm = AsmDsl()
+    with raises(TypeError):
+        asm(FOO, [object()])
+
+@given(address=integers(max_value=-1))
+def test_negative_indirect_address_raises_value_error(address):
+    FOO = Mnemonic('FOO')
+    asm = AsmDsl()
+    with raises(ValueError):
+        asm(FOO, {address})

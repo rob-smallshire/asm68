@@ -3,7 +3,7 @@ import weakref
 from functools import singledispatch
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
-    Relative, Integers
+     Integers
 from asm68.ast import MNEMONIC_TO_AST
 from asm68.label import Label
 from numbers import Integral
@@ -30,7 +30,7 @@ class AsmDsl:
         elif len(args) == 2:
             operand, comment = args
         else:
-            raise TypeError("")
+            raise TypeError("Unhandled number are assembler arguments")
 
         if label is not None:
             self._label_statement_index[label] = len(self._statements)
@@ -67,7 +67,7 @@ def statement_index(asm, label):
 
 @singledispatch
 def parse_operand(operand):
-    raise NotImplementedError("Unrecognised operand type".format(operand))
+    raise TypeError("Unrecognised operand type {!r}".format(operand))
 
 @parse_operand.register(type(None))
 def _(operand):
@@ -134,7 +134,7 @@ def _(operand):
 
 @singledispatch
 def parse_indirect_operand(operand):
-    raise NotImplementedError("Unrecognised indirect operand type".format(operand))
+    raise TypeError("Unrecognised indirect operand type {!r}".format(operand))
 
 @parse_indirect_operand.register(Set)
 def _(operand):

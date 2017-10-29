@@ -1,14 +1,13 @@
-from string import ascii_uppercase, digits, ascii_lowercase
+from string import ascii_uppercase, ascii_lowercase
 
 from hypothesis import given
-from hypothesis.strategies import text, characters, composite
+from hypothesis.strategies import text, composite
 from pytest import raises
 
 from asm68.mnemonics import Mnemonic
+from tests.alphabets import ASCII_UPPERCASE_AND_DIGITS, ASCII_LOWERCASE_AND_DIGITS
 from tests.predicates import check_balanced
 
-ASCII_UPPERCASE_AND_DIGITS = ascii_uppercase + digits
-ASCII_LOWERCASE_AND_DIGITS = ascii_lowercase + digits
 
 @composite
 def mnemonics(draw, min_size=1):
@@ -25,13 +24,13 @@ def test_empty_mnemonic_raises_value_error():
         Mnemonic('')
 
 @given(m=text(min_size=1, alphabet=ASCII_LOWERCASE_AND_DIGITS))
-def test_illegal_initial_character_raises_value_error(m):
+def test_mnemonic_illegal_initial_character_raises_value_error(m):
     with raises(ValueError):
         Mnemonic(m)
 
 @given(p=text(min_size=1, max_size=1, alphabet=ascii_uppercase),
        q=text(min_size=1, alphabet=ascii_lowercase))
-def test_illegal_unicode_categories_raise_value_error(p, q):
+def test_mnemonic_illegal_unicode_categories_raise_value_error(p, q):
     m = p + q
     with raises(ValueError):
         Mnemonic(m)
