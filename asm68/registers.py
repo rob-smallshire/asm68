@@ -2,13 +2,24 @@ class Register:
 
     _instances = {}
 
-    def __new__(cls, name, width):
+    def __new__(cls, name, width=None):
+        if len(name) < 1:
+            raise ValueError("Register name cannot be empty")
+
+        if not name.isupper():
+            raise ValueError(f"Register name {name!r} is not uppercase letters")
+
+        if (width is not None) and (width < 1):
+            raise ValueError(f"Register width {width} is not at least one")
+
         if name in cls._instances:
             instance = cls._instances[name]
-            if width != instance.width:
+            if (width is not None) and (width != instance.width):
                 raise ValueError("Inconsistent register width {} for {} register."
                                  "Previous width was {}".format(width, name, instance.width))
             return instance
+        if width is None:
+            raise ValueError("Unspecified register width")
         obj = object.__new__(cls)
         obj._name = name
         obj._width = width
@@ -27,7 +38,7 @@ class Register:
         return self._name
 
     def __repr__(self):
-        return "{}({}, {})".format(
+        return "{}({!r}, {})".format(
             self.__class__.__name__, self._name, self._width)
 
     def __eq__(self, rhs):
