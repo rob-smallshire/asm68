@@ -1,3 +1,4 @@
+import reprlib
 from numbers import Integral
 
 from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8
@@ -101,7 +102,7 @@ class ExtendedDirect:
     def __init__(self, address):
         if not isinstance(address, (Integral, Label)):
             raise TypeError("Integer address or label expected, got {!r}".format(address))
-        if isinstance(address, Integral) and not (0x0100 <= address <= 0xFFFF):
+        if isinstance(address, Integral) and not (0x0000 <= address <= 0xFFFF):
             raise ValueError("Invalid extended direct address 0x{:X}. "
                              "Must be one two byte 0x0000-0xFFFF.".format(address))
         self._address = address
@@ -145,7 +146,7 @@ class ExtendedIndirect:
 
     def __repr__(self):
         field = "0x{:04X}".format(self._address) if isinstance(self._address, Integral) else str(self._address)
-        return "{}(0x{:04X})".format(self.__class__.__name__, field)
+        return "{}({})".format(self.__class__.__name__, field)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, self.__class__):
@@ -189,7 +190,13 @@ class Relative:
     codes = {REL8}
 
     def __init__(self, offset):
+        if not (0x00 <= offset <= 0xFF):
+            raise ValueError("Relative address 0x{:02X} out of range 0x00-0xFF".format(offset))
         self._offset = offset
+
+    @property
+    def offset(self):
+        return self._offset
 
     def __repr__(self):
         return "{}({})".format(self.__class__.__name__, self._offset)
@@ -207,10 +214,14 @@ class Relative:
 class Integers:
 
     def __init__(self, items):
+        if len(items) < 1:
+            raise ValueError("At least one integer must be provided")
+        if not all(isinstance(item, Integral) for item in items):
+            raise TypeError("Not all items in {} are of integral type".format(reprlib.repr(items)))
         self._items = tuple(items)
 
     def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, self._items)
+        return "{}({!r})".format(self.__class__.__name__, self._items)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, self.__class__):

@@ -3,6 +3,12 @@ class Mnemonic:
     _instances = {}
 
     def __new__(cls, mnemonic):
+        if len(mnemonic) < 1:
+            raise ValueError("Mnemonic cannot be empty")
+        if not (mnemonic[0].isalpha() and mnemonic[0].isupper()):
+            raise ValueError("Mnemonic {} does not begin with an uppercase alphabetic character".format(mnemonic))
+        if (len(mnemonic) > 1) and not (mnemonic[1:].isalnum() and all(c.isupper() for c in mnemonic[1:] if c.isalpha())):
+            raise ValueError("Mnemonic {} is not uppercase alphanumeric".format(mnemonic))
         if mnemonic in cls._instances:
             return cls._instances[mnemonic]
         obj = object.__new__(cls)

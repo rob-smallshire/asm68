@@ -1,6 +1,3 @@
-from asm68.opcodes import OPCODES
-
-
 class Statement:
 
     mnemonic = None

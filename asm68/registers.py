@@ -35,6 +35,11 @@ class Register:
             return NotImplemented
         return (self._name == rhs._name) and (self._width == self._width)
 
+    def __lt__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self.name < rhs.name
+
     def __hash__(self):
         return hash((self._name, self._width))
 
@@ -54,5 +59,12 @@ PCR = Register('PCR', 2)
 DP = Register('DP', 1)
 CC = Register('CC', 1)
 MD = Register('MD', 1)
+# TODO: V Register?
 
 INDEX_REGISTERS = {X, Y, U, S}
+ACCUMULATORS_1 = {A, B, E, F}
+ACCUMULATORS_2 = {D, W}
+ACCUMULATORS_4 = {Q}
+ACCUMULATORS = ACCUMULATORS_1 | ACCUMULATORS_2 | ACCUMULATORS_4
+STATUS_REGISTERS = {DP, CC, MD, PC}
+REGISTERS = INDEX_REGISTERS | ACCUMULATORS | STATUS_REGISTERS
