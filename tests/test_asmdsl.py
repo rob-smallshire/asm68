@@ -1,10 +1,10 @@
 import gc
 from hypothesis import given, assume
-from hypothesis.strategies import lists, integers
+from hypothesis.strategies import lists, integers, binary
 from pytest import raises
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed
-from asm68.asmdsl import AsmDsl, statements, statement_index, parse_operand
+from asm68.asmdsl import AsmDsl, statements, statement_index, parse_operand, parse_indirect_operand
 from asm68.ast import MNEMONIC_TO_AST
 from asm68.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
 from asm68.label import Label
@@ -208,3 +208,42 @@ def test_negative_indirect_address_raises_value_error(address):
     asm = AsmDsl()
     with raises(ValueError):
         asm(FOO, {address})
+
+@given(b=binary(min_size=1, max_size=1))
+def test_bytes_operand_gives_immediate_value(b):
+    assert parse_operand(b) == Immediate(b[0])
+
+def test_empty_bytes_operand_raises_value_error():
+    with raises(ValueError):
+        assert parse_operand(b'')
+
+@given(b=binary(min_size=2))
+def test_multi_bytes_operand_raises_value_error(b):
+    with raises(ValueError):
+        assert parse_operand(b)
+
+def test_unsupported_tuple_items_raises_type_error():
+    with raises(TypeError):
+        parse_operand(("some", "strings"))
+
+def test_unsupported_tuple_indexed_offset_raises_type_error():
+    with raises(TypeError):
+        parse_operand({"some": "strings"})
+
+def test_unsupported_tuple_indexed_base_raises_type_error():
+    with raises(TypeError):
+        parse_operand({2: "strings"})
+
+@given(address=integers(max_value=-1))
+def test_indirect_negative_integer(address):
+    with raises(ValueError):
+        parse_indirect_operand({address})
+
+@given(address=integers(min_value=0x10000))
+def test_indirect_too_large_an_integer(address):
+    with raises(ValueError):
+        parse_indirect_operand({address})
+
+def test_indirect_wrong_type_raises_type_error():
+    with raises(TypeError):
+        parse_indirect_operand({"a string"})
