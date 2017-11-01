@@ -1,4 +1,5 @@
 from asm68.addrmodecodes import REL8, IMM
+from tests.predicates import is_valid_variable_name
 
 
 class Label:
@@ -6,6 +7,8 @@ class Label:
     codes = {REL8, IMM}
 
     def __init__(self, name):
+        if not is_valid_variable_name(name):
+            raise ValueError("{!r} is not a valid label name")
         self._name = name
 
     @property

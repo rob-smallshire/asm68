@@ -1,3 +1,5 @@
+from keyword import iskeyword
+
 OPEN = {
     '{': '}',
     '[': ']',
@@ -29,3 +31,6 @@ def check_balanced(s):
             s)
         )
     return True
+
+def is_valid_variable_name(name):
+    return name.isidentifier() and not iskeyword(name)
