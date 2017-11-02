@@ -1,16 +1,16 @@
-from functools import singledispatch
-
 from collections import defaultdict
+from functools import singledispatch
 from itertools import islice
 
-from asm68.addrmodecodes import REL8, REL16, EXT, IMM
-from asm68.addrmodes import (PageDirect, Inherent, Immediate, Registers, Indexed, Integers)
+from asm68.addrmodecodes import REL8, REL16, IMM
+from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
 from asm68.asmdsl import single
-from asm68.directives import Directive, Org, Fcb
+from asm68.directives import Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES
 from asm68.registers import X, Y, U, S, A, B, D, E, F, W
+from asm68.twiddle import twos_complement, hi, lo
 
 
 def assemble(statements, origin=0):
@@ -22,7 +22,7 @@ class Assembler:
 
     def __init__(self, origin=0):
         self._origin = origin
-        self._pos = self._origin
+        self._pos = self.origin
         self._code = defaultdict(list)  # A dictionary mapping addresses to code fragments represented as lists of bytes strings.
         self._label_addresses = {}  # Maps label names to items in _code
         self._more_passes_required = True
@@ -45,6 +45,7 @@ class Assembler:
         self._pos = self._origin
 
     def _in_existing_fragment(self, value):
+
         return any(value in range(address, len(code[0])) for address, code in self._code.items())
 
     def _flatten(self):
@@ -54,8 +55,9 @@ class Assembler:
              for address, fragments in self._code.items()))
 
     def _extend(self, code):
+        # TODO: Check that we're not extending into an existing fragment - use interval tree for this
         c = bytes(code)
-        self._code[self._origin].append(c)
+        self._code[self.origin].append(c)
         self._pos += len(c)
 
     def object_code(self):
@@ -83,25 +85,19 @@ class Assembler:
                     if i == 0:
                         raise RuntimeError("Label {} already used previously."
                                            .format(statement.label))
-                    else:
-                        print("More passes required.")
+                    # else:
+                    #    print("More passes required.")
             self._label_addresses[statement.label] = self._pos
 
 @singledispatch
 def assemble_statement(statement, asm):
-    raise NotImplementedError("Statement {} could not be assembled".format(statement))
+    raise TypeError("Statement {} could not be assembled".format(statement))
 
 @assemble_statement.register(Instruction)
 def _(statement, asm):
     operand = statement.operand
-    try:
-        opcodes = OPCODES[statement.mnemonic]
-    except KeyError:
-        raise RuntimeError("No opcodes for {}".format(statement.mnemonic))
-    try:
-        opcode_key = single(operand.codes & opcodes.keys())
-    except ValueError:
-        raise RuntimeError("{} does not support {} addressing modes.".format(statement.mnemonic, operand.codes))
+    opcodes = OPCODES[statement.mnemonic]
+    opcode_key = single(operand.codes & opcodes.keys())
     opcode = opcodes[opcode_key]
     asm._opcode_bytes = (opcode,) if opcode <= 0xFF else (hi(opcode), lo(opcode))
     asm._extend(asm._opcode_bytes + assemble_operand(operand, opcode_key, asm, statement))
@@ -110,7 +106,7 @@ def _(statement, asm):
 def _(statement, asm):
     operand = statement.operand
     if not isinstance(operand, Immediate):
-        raise TypeError("ORG value must be immediate.")
+        raise TypeError("ORG operand must be an immediate value")
     asm.origin = operand.value
 
 @assemble_statement.register(Fcb)
@@ -122,14 +118,14 @@ def _(statement, asm):
         b = bytes(operand)
     except ValueError as e:
         g = ((i, v) for i, v in enumerate(operand) if not v in range(0, 256))
-        i, v = islice(g, 1)
+        i, v = next(islice(g, 1))
         raise ValueError("byte {} at index {} not in range(0, 256)".format(v, i)) from e
     asm._extend(b)
 
 
 @singledispatch
 def assemble_operand(operand, opcode_key, asm, statement):
-    raise NotImplementedError("Operand {} could not be assembled".format(operand))
+    raise TypeError("Operand {} could not be assembled".format(operand))
 
 @assemble_operand.register(Inherent)
 def _(operand, opcode_key, asm, statement):
@@ -137,13 +133,11 @@ def _(operand, opcode_key, asm, statement):
 
 @assemble_operand.register(Immediate)
 def _(operand, opcode_key, asm, statement):
+    assert statement.inherent_register.width in {1, 2}
     if statement.inherent_register.width == 1:
         return (operand.value, )
     elif statement.inherent_register.width == 2:
         return (hi(operand.value), lo(operand.value))
-    else:
-        assert False, "Unhandled immediate value width of {} bytes".format(
-            statement.inherent_register.width)
 
 @assemble_operand.register(PageDirect)
 def _(operand, opcode_key, asm, statement):
@@ -164,18 +158,16 @@ def _(operand, opcode_key, asm, statement):
             offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
             unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
             return (unsigned_offset, )
-        elif opcode_key is IMM:
-            return (hi(target_address), lo(target_address))
         else:
-            assert False, "Unhandled addressing mode."
+            assert opcode_key is IMM
+            return (hi(target_address), lo(target_address))
     else:
         asm._more_passes_required = True
         if opcode_key in branch_opcode_widths:
             return (0, )
-        elif opcode_key is IMM:
-            return (0, 0)
         else:
-            assert False, "Unhandled addressing mode."
+            assert opcode_key is IMM
+            return (0, 0)
 
 
 
@@ -206,19 +198,3 @@ def _(operand, opcode_key, asm, statement):
         return (post_byte, )
 
 
-
-def twos_complement(n, num_bits):
-    lower = -(2**(num_bits - 1))
-    higher = 2**(num_bits - 1) - 1
-    if not (lower <= n <= higher):
-        raise ValueError("Cannot represent {} in two's complement in {} bits".format(n, num_bits))
-
-    if n < 0:
-        return n + (1 << num_bits)
-    return n
-
-def hi(b):
-    return b >> 8
-
-def lo(b):
-    return b & 0xFF

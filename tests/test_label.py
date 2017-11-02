@@ -1,5 +1,5 @@
 from hypothesis import given, assume, settings
-from hypothesis.strategies import text
+from hypothesis.strategies import text, fractions
 from pytest import raises
 
 from asm68.label import Label
@@ -48,3 +48,4 @@ def test_label_inequality(name_a, name_b):
     assume(is_valid_variable_name(name_b))
     assume(name_a != name_b)
     assert Label(name_a) != Label(name_b)
+

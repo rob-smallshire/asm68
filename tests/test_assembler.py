@@ -1,7 +1,75 @@
+from hypothesis import given
+from hypothesis.strategies import lists, one_of, integers
+from pytest import raises
+
 from asm68.asmdsl import AsmDsl, statements
-from asm68.assembler import assemble
+from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
-from asm68.registers import B, X
+from asm68.registers import B, X, A
+
+
+def test_assemble_unsupported_statement_type_raises_type_error():
+    with raises(TypeError):
+        assemble_statement(object(), None)
+
+def test_assemble_unsupported_operand_type_raises_type_error():
+    with raises(TypeError):
+        assemble_operand(object(), None, None, None)
+
+def test_assemble_org_without_immediate_operand_raises_type_error():
+    asm = AsmDsl()
+    asm         (   ORG,    {0x03},       "ILLEGAL ADDRESS MODE"    )
+    s = statements(asm)
+    with raises(TypeError):
+        assemble(s)
+
+def test_origin_address_lies_within_existing_code_fragment():
+    asm = AsmDsl()
+    asm         (   LDB,    {0x41},     "GET DATA"                  )
+    asm         (   LDX,    asm.SQTAB,  "GET BASE ADDRESS"          )
+    asm         (   LDA,    {B:X},      "GET SQUARE OF DATA"        )
+    asm         (   STA,    {0x42},     "STORE SQUARE"              )
+    asm         (   SWI                                             )
+    asm         (   ORG,    0x03,       "TABLE OF SQUARES"          )
+
+    s = statements(asm)
+
+    with raises(ValueError):
+        assemble(s)
+
+def test_fcb_operand_is_not_integers_raises_type_error():
+    asm = AsmDsl()
+    asm         (   FCB,    0            )
+    s = statements(asm)
+    with raises(TypeError):
+        assemble(s)
+
+@given(items=lists(min_size=1, elements=one_of(integers(max_value=-1), integers(min_value=256))))
+def test_fcb_operand_integers_out_of_range_raises_value_error(items):
+    asm = AsmDsl()
+    asm         (   FCB,    tuple(items)            )
+    s = statements(asm)
+    with raises(ValueError):
+        assemble(s)
+
+def test_label_reuse_raises_runtime_error():
+    asm = AsmDsl()
+    asm        (   LDA,    {0x40},     "GET FIRST OPERAND"         )
+    asm        (   CMPA,   {0x41},     "IS SECOND OPERAND LARGER?" )
+    asm        (   BHS,    asm.stres                               )
+    asm        (   LDA,    {0x41},     "YES,GET SECOND OPERAND"    )
+    asm .stres (   STA,    {0x42},     "STORE LARGER OPERAND"      )
+    asm .stres (   SWI                                             )
+    s = statements(asm)
+    with raises(RuntimeError):
+        assemble(s)
+
+def test_incorrect_index_register_raises_value_error():
+    asm = AsmDsl()
+    asm         (   LDA,    {B:A},      "GET SQUARE OF DATA"        )
+    s = statements(asm)
+    with raises(ValueError):
+        assemble(s)
 
 
 def test_leventhal_4_1__8_bit_data_transfer():
