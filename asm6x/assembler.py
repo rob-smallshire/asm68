@@ -2,15 +2,15 @@ from collections import defaultdict
 from functools import singledispatch
 from itertools import islice
 
-from asm68.addrmodecodes import REL8, REL16, IMM
-from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
-from asm68.asmdsl import single
-from asm68.directives import Org, Fcb
-from asm68.instructions import Instruction
-from asm68.label import Label
-from asm68.opcodes import OPCODES
-from asm68.registers import X, Y, U, S, A, B, D, E, F, W
-from asm68.twiddle import twos_complement, hi, lo
+from asm6x.addrmodecodes import REL8, REL16, IMM
+from asm6x.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
+from asm6x.asmdsl import single
+from asm6x.directives import Org, Fcb
+from asm6x.instructions import Instruction
+from asm6x.label import Label
+from asm6x.opcodes import OPCODES
+from asm6x.registers import X, Y, U, S, A, B, D, E, F, W
+from asm6x.twiddle import twos_complement, hi, lo
 
 
 def assemble(statements, origin=0):

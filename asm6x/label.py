@@ -1,4 +1,4 @@
-from asm68.addrmodecodes import REL8, IMM
+from asm6x.addrmodecodes import REL8, IMM
 from tests.predicates import is_valid_variable_name
 
 

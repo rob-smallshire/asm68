@@ -1,8 +1,8 @@
 from frozendict import frozendict
 
-from asm68.instructions import *
-from asm68.directives import *
-from asm68.mnemonics import *
+from asm6x.instructions import *
+from asm6x.directives import *
+from asm6x.mnemonics import *
 
 MNEMONIC_TO_AST = frozendict({
     ABX: Abx,

@@ -1,5 +1,5 @@
-from asm68.mnemonics import (ORG, FCB)
-from asm68.statement import Statement
+from asm6x.mnemonics import (ORG, FCB)
+from asm6x.statement import Statement
 
 
 class Directive(Statement):

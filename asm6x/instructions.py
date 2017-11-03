@@ -1,7 +1,7 @@
-from asm68.mnemonics import *
-from asm68.opcodes import OPCODES
-from asm68.registers import A, B, D, S, U, X, Y, CC
-from asm68.statement import Statement
+from asm6x.mnemonics import *
+from asm6x.opcodes import OPCODES
+from asm6x.registers import A, B, D, S, U, X, Y, CC
+from asm6x.statement import Statement
 
 
 class Instruction(Statement):

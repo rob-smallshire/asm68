@@ -1,8 +1,8 @@
 import reprlib
 from numbers import Integral
 
-from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8
-from asm68.label import Label
+from asm6x.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8
+from asm6x.label import Label
 
 
 class Inherent:

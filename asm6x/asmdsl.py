@@ -2,14 +2,14 @@ import reprlib
 import weakref
 from functools import singledispatch
 
-from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
+from asm6x.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
      Integers
-from asm68.ast import MNEMONIC_TO_AST
-from asm68.label import Label
+from asm6x.ast import MNEMONIC_TO_AST
+from asm6x.label import Label
 from numbers import Integral
 from collections.abc import Set
 
-from asm68.registers import Register
+from asm6x.registers import Register
 
 class AsmDsl:
 
