@@ -3,6 +3,8 @@ class Statement:
     mnemonic = None
 
     def __init__(self, operand, comment='', label=None):
+        if self.mnemonic is None:
+            raise NotImplementedError("Statement class {} does not override mnemonic".format(self.__class__))
         self._operand = operand
         self._comment = comment
         self._label = label

@@ -7,8 +7,8 @@ class Label:
     codes = {REL8, IMM}
 
     def __init__(self, name):
-        if not is_valid_variable_name(name):
-            raise ValueError("{!r} is not a valid label name")
+        if (not is_valid_variable_name(name)) or name.startswith('_'):
+            raise ValueError("{!r} is not a valid label name".format(name))
         self._name = name
 
     @property
