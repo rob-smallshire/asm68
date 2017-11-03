@@ -3,13 +3,13 @@ from hypothesis import given, assume
 from hypothesis.strategies import lists, integers, binary
 from pytest import raises
 
-from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed
-from asm68.asmdsl import AsmDsl, statements, statement_index, parse_operand, parse_indirect_operand
-from asm68.ast import MNEMONIC_TO_AST
-from asm68.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
-from asm68.label import Label
-from asm68.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS, Mnemonic
-from asm68.registers import A, B, PC, U, Y, X, DP, CC
+from asm6x.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed
+from asm6x.asmdsl import AsmDsl, statements, statement_index, parse_operand, parse_indirect_operand
+from asm6x.ast import MNEMONIC_TO_AST
+from asm6x.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
+from asm6x.label import Label
+from asm6x.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS, Mnemonic
+from asm6x.registers import A, B, PC, U, Y, X, DP, CC
 from tests.test_mnemonics import mnemonics
 
 

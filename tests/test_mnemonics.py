@@ -4,7 +4,7 @@ from hypothesis import given
 from hypothesis.strategies import text, composite
 from pytest import raises
 
-from asm68.mnemonics import Mnemonic
+from asm6x.mnemonics import Mnemonic
 from tests.alphabets import ASCII_UPPERCASE_AND_DIGITS, ASCII_LOWERCASE_AND_DIGITS
 from tests.predicates import check_balanced
 
@@ -49,3 +49,4 @@ def test_mnemonic_repr(m):
     assert r.startswith('Mnemonic')
     assert m in r
     assert check_balanced(r)
+

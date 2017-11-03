@@ -2,10 +2,10 @@ from hypothesis import given
 from hypothesis.strategies import lists, one_of, integers
 from pytest import raises
 
-from asm68.asmdsl import AsmDsl, statements
-from asm68.assembler import assemble, assemble_statement, assemble_operand
-from asm68.mnemonics import *
-from asm68.registers import B, X, A
+from asm6x.asmdsl import AsmDsl, statements
+from asm6x.assembler import assemble, assemble_statement, assemble_operand
+from asm6x.mnemonics import *
+from asm6x.registers import B, X, A
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():

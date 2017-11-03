@@ -1,12 +1,16 @@
-from hypothesis import given, assume, settings
-from hypothesis.strategies import text, fractions
+from hypothesis import given, assume
+from hypothesis.strategies import from_regex, composite, text
 from pytest import raises
 
-from asm68.label import Label
+from asm6x.label import Label
 from tests.predicates import is_valid_variable_name, check_balanced
 
+@composite
+def label_names(draw):
+    label_name = draw(from_regex(r'\A[A-Za-z][A-Za-z0-9_]*\Z'))
+    return label_name
 
-@given(name=text(min_size=1))
+@given(name=label_names())
 def test_label_value(name):
     assume(is_valid_variable_name(name))
     assert Label(name).name == name
@@ -17,7 +21,7 @@ def test_illegal_label_name_raises_value_error(name):
     with raises(ValueError):
         Label(name)
 
-@given(name=text(min_size=1))
+@given(name=label_names())
 def test_label_repr(name):
     assume(is_valid_variable_name(name))
     r = repr(Label(name))
@@ -25,27 +29,24 @@ def test_label_repr(name):
     assert name in r
     assert check_balanced(r)
 
-@given(name=text(min_size=1))
+@given(name=label_names())
 def test_label_equality(name):
     assume(is_valid_variable_name(name))
     assert Label(name) == Label(name)
 
-@given(name=text(min_size=1))
+@given(name=label_names())
 def test_label_hash_equality(name):
     assume(is_valid_variable_name(name))
     assert hash(Label(name)) == hash(Label(name))
 
-@given(name=text(min_size=1))
+@given(name=label_names())
 def test_label_equality_differing_type(name):
     assume(is_valid_variable_name(name))
     assert Label(name) != object()
 
-@given(name_a=text(min_size=1),
-       name_b=text(min_size=1))
-@settings(max_examples=2000)
+@given(name_a=label_names(),
+       name_b=label_names())
 def test_label_inequality(name_a, name_b):
-    assume(is_valid_variable_name(name_a))
-    assume(is_valid_variable_name(name_b))
     assume(name_a != name_b)
     assert Label(name_a) != Label(name_b)
 

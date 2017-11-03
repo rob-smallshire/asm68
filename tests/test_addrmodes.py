@@ -2,9 +2,9 @@ from pytest import raises
 from hypothesis import given, assume
 from hypothesis.strategies import integers, sets, sampled_from, one_of, lists
 
-from asm68.addrmodes import (PageDirect, ExtendedDirect, ExtendedIndirect, Inherent, Immediate, Registers, Indexed,
+from asm6x.addrmodes import (PageDirect, ExtendedDirect, ExtendedIndirect, Inherent, Immediate, Registers, Indexed,
                              Relative, Integers)
-from asm68.registers import REGISTERS, INDEX_REGISTERS, ACCUMULATORS
+from asm6x.registers import REGISTERS, INDEX_REGISTERS, ACCUMULATORS
 from tests.predicates import check_balanced
 
 
