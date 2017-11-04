@@ -1,0 +1,7 @@
+INH = "Inherent"
+IMM = "Immediate"
+DIR = "Direct"
+IDX = "Indexed"
+EXT = "Extended"
+REL8 = "Relative 8-bit"
+REL16 = "Relative 16-bit"
