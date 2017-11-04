@@ -2,7 +2,7 @@ from hypothesis import given, assume
 from hypothesis.strategies import from_regex, composite, text
 from pytest import raises
 
-from asm6x.label import Label
+from asm68.label import Label
 from tests.predicates import is_valid_variable_name, check_balanced
 
 @composite

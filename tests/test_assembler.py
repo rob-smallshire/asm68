@@ -2,10 +2,10 @@ from hypothesis import given
 from hypothesis.strategies import lists, one_of, integers
 from pytest import raises
 
-from asm6x.asmdsl import AsmDsl, statements
-from asm6x.assembler import assemble, assemble_statement, assemble_operand
-from asm6x.mnemonics import *
-from asm6x.registers import B, X, A
+from asm68.asmdsl import AsmDsl, statements
+from asm68.assembler import assemble, assemble_statement, assemble_operand
+from asm68.mnemonics import *
+from asm68.registers import B, X, A
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():
@@ -237,3 +237,19 @@ def test_levethal_4_9_modified__table_of_squares():
     assert code[0x50] == bytes.fromhex(
         '00 01 04 09 10 19 24 31'
     )
+
+def test_levethal_4_10_ones_complement():
+    asm = AsmDsl()
+    asm         (   LDD,    {0x40},     "GET 16-BIT NUMBER"             )
+    asm         (   COMA,               "ONES COMPLEMENT MSB'S"         )
+    asm         (   COMB,               "ONES COMPLEMENT LSB'S"         )
+    asm         (   STD,    {0x42},     "STORE 16-BIT ONES COMPLEMENT"  )
+    asm         (   SWI                                                 )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        'DC 40'
+        '43'
+        '53'
+        'DD 42'
+        '3F')

@@ -4,7 +4,7 @@ from hypothesis import given, assume
 from hypothesis.strategies import text, integers
 from pytest import raises
 
-from asm6x.registers import Register, REGISTERS
+from asm68.registers import Register, REGISTERS
 from tests.alphabets import ASCII_LOWERCASE_AND_DIGITS
 from tests.predicates import check_balanced
 
