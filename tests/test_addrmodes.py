@@ -1,10 +1,10 @@
 from pytest import raises
 from hypothesis import given, assume
-from hypothesis.strategies import integers, sets, sampled_from, one_of, lists
+from hypothesis.strategies import integers, sets, sampled_from, one_of, lists, just
 
 from asm68.addrmodes import (PageDirect, ExtendedDirect, ExtendedIndirect, Inherent, Immediate, Registers, Indexed,
                              Relative, Integers)
-from asm68.registers import REGISTERS, INDEX_REGISTERS, ACCUMULATORS
+from asm68.registers import REGISTERS, INDEX_REGISTERS, ACCUMULATORS, X, AutoIncrementedRegister
 from tests.predicates import check_balanced
 
 
@@ -216,15 +216,30 @@ def test_extended_indirect_equal_hash(address):
 
 @given(base=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)))
+                     integers(min_value=-32768, max_value=+32767)))
 def test_indexed_values(base, offset):
     idx = Indexed(base, offset)
     assert idx.base == base
     assert idx.offset == offset
 
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
+       delta=one_of(just(-2), just(-1), just(+1), just(+2)),
+       offset=integers())
+def test_indexed_autoincrement_with_non_zero_offset_raises_value_error(index_register, delta, offset):
+    assume(offset != 0)
+    with raises(ValueError):
+        Indexed(AutoIncrementedRegister(index_register, delta), offset)
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
+       offset=one_of(integers(max_value=-32769), integers(min_value=32768)))
+def test_indexed_autoincrement_with_out_of_range_offset_raises_value_error(index_register, offset):
+    assume(offset != 0)
+    with raises(ValueError):
+        Indexed(index_register, offset)
+
 @given(base=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)))
+                     integers(min_value=-32768, max_value=+32767)))
 def test_indexed_repr(base, offset):
     r = repr(Indexed(base, offset))
     assert r.startswith('Indexed')
@@ -233,30 +248,30 @@ def test_indexed_repr(base, offset):
 
 @given(base=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)))
+                     integers(min_value=-32768, max_value=+32767)))
 def test_indexed_equality(base, offset):
     assert Indexed(base, offset) == Indexed(base, offset)
 
 @given(base=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)))
+                     integers(min_value=-32768, max_value=+32767)))
 def test_indexed_inequality_different_types(base, offset):
     assert Indexed(base, offset) != object()
 
 
 @given(base_a=sampled_from(sorted(INDEX_REGISTERS)),
        offset_a=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)),
+                     integers(min_value=-32768, max_value=+32767)),
        base_b=sampled_from(sorted(INDEX_REGISTERS)),
        offset_b=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)))
+                     integers(min_value=-32768, max_value=+32767)))
 def test_indexed_inequality(base_a, offset_a, base_b, offset_b):
     assume((base_a, offset_a) != (base_b, offset_b))
     assert Indexed(base_a, offset_a) != Indexed(base_b, offset_b)
 
 @given(base=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(sampled_from(sorted(ACCUMULATORS)),
-                     integers(min_value=0x0000, max_value=0xFFFF)))
+                     integers(min_value=-32768, max_value=+32767)))
 def test_indexed_hash_equality(base, offset):
     assert hash(Indexed(base, offset)) == hash(Indexed(base, offset))
 

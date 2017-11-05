@@ -1,11 +1,12 @@
+import pytest
 from hypothesis import given
 from hypothesis.strategies import lists, one_of, integers
-from pytest import raises
+from pytest import raises, skip
 
 from asm68.asmdsl import AsmDsl, statements
 from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
-from asm68.registers import B, X, A
+from asm68.registers import B, X, A, Y
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():
@@ -71,6 +72,19 @@ def test_incorrect_index_register_raises_value_error():
     with raises(ValueError):
         assemble(s)
 
+def test_using_indexed_addressing_offset_register_with_index_register_raises_value_error():
+    asm = AsmDsl()
+    asm         (   LDA,    {Y:X},      "GET SQUARE OF DATA"        )
+    s = statements(asm)
+    with raises(ValueError):
+        assemble(s)
+
+def test_using_auto_post_increment_with_register_non_index_register_raises_value_error():
+    asm = AsmDsl()
+    asm         (   LDA,    {0:A+1},      "GET SQUARE OF DATA"        )
+    s = statements(asm)
+    with raises(ValueError):
+        assemble(s)
 
 def test_leventhal_4_1__8_bit_data_transfer():
     asm = AsmDsl()
@@ -253,3 +267,69 @@ def test_levethal_4_10_ones_complement():
         '53'
         'DD 42'
         '3F')
+
+def test_levethal_5_1a_sum_of_data():
+    asm = AsmDsl()
+    asm         (   CLRA,               "SUM = ZERO"                )
+    asm         (   LDB,    {0x41},     "COUNT = LENGTH OF ARRAY"   )
+    asm         (   LDX,    0x42,       "POINT TO START OF ARRAY"   )
+    asm  .SUMD  (   ADDA,   {0:X+1},    "ADD NUMBER TO SUM"         )
+    asm         (   DECB                                            )
+    asm         (   BNE,    asm.SUMD                                )
+    asm         (   STA,    {0x40}                                  )
+    asm         (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '4F'
+        'D6 41'
+        '8E 0042'
+        'AB 80'
+        '5A'
+        '26 FB'
+        '97 40'
+        '3F')
+
+def test_levethal_5_1b_sum_of_data():
+    asm = AsmDsl()
+    asm         (   CLRA,               "SUM = ZERO"                )
+    asm         (   LDB,    {0x41},     "COUNT = LENGTH OF ARRAY"   )
+    asm         (   LDY,    0x42,       "POINT TO START OF ARRAY"   )
+    asm  .SUMD  (   ADDA,   {0:Y+1},    "ADD NUMBER TO SUM"         )
+    asm         (   DECB                                            )
+    asm         (   BNE,    asm.SUMD                                )
+    asm         (   STA,    {0x40}                                  )
+    asm         (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '4F'
+        'D6 41'
+        '108E 0042'
+        'AB A0'
+        '5A'
+        '26 FB'
+        '97 40'
+        '3F')
+#
+# def test_levethal_5_2__16_bit_sum_of_data():
+#     asm = AsmDsl()
+#     asm         (   CLRA,               "SUM = ZERO"                )
+#     asm         (   LDB,    {0x41},     "COUNT = LENGTH OF ARRAY"   )
+#     asm         (   LDX,    0x42,       "POINT TO START OF ARRAY"   )
+#     asm  .SUMD  (   ADDA,   {0:X+1},    "ADD NUMBER TO SUM"         )
+#     asm         (   DECB                                            )
+#     asm         (   BNE,    asm.SUMD                                )
+#     asm         (   STA,    {0x40}                                  )
+#     asm         (   SWI                                             )
+#
+#     code = assemble(statements(asm))
+#     assert code[0] == bytes.fromhex(
+#         '4F'
+#         'D6 41'
+#         '8E 0042'
+#         'AB 80'
+#         '5A'
+#         '26 FB'
+#         '97 40'
+#         '3F')
