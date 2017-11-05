@@ -106,6 +106,10 @@ class Bne(Instruction):
     mnemonic = BNE
 
 
+class Bra(Instruction):
+    mnemonic = BRA
+
+
 class Clra(Instruction):
     inherent_register = A
     mnemonic = CLRA
@@ -226,6 +230,11 @@ class Jmp(Instruction):
 class Jsr(Instruction):
     mnemonic = JSR
 
+class Lbra(Instruction):
+    mnemonic = LBRA
+
+class Lbne(Instruction):
+    mnemonic = LBNE
 
 class Lda(Instruction):
     inherent_register = A

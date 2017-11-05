@@ -3,7 +3,7 @@ from hypothesis import given, assume
 from hypothesis.strategies import integers, sets, sampled_from, one_of, lists, just
 
 from asm68.addrmodes import (PageDirect, ExtendedDirect, ExtendedIndirect, Inherent, Immediate, Registers, Indexed,
-                             Relative, Integers)
+                             Relative8, Integers, Relative16)
 from asm68.registers import REGISTERS, INDEX_REGISTERS, ACCUMULATORS, X, AutoIncrementedRegister
 from tests.predicates import check_balanced
 
@@ -276,43 +276,84 @@ def test_indexed_hash_equality(base, offset):
     assert hash(Indexed(base, offset)) == hash(Indexed(base, offset))
 
 @given(offset=integers(min_value=0x00, max_value=0xFF))
-def test_relative_value(offset):
-    assert Relative(offset).offset == offset
+def test_relative8_value(offset):
+    assert Relative8(offset).offset == offset
 
 @given(offset=integers(max_value=-1))
-def test_relative_negative_offsets_raise_value_error(offset):
+def test_relative8_negative_offsets_raise_value_error(offset):
     with raises(ValueError):
-        Relative(offset)
+        Relative8(offset)
 
-@given(offset=integers(min_value=0x10000))
-def test_relative_two_byte_offsets_raise_value_error(offset):
+@given(offset=integers(min_value=0x100))
+def test_relative8_two_byte_offsets_raise_value_error(offset):
     with raises(ValueError):
-        Relative(offset)
+        Relative8(offset)
 
 @given(offset=integers(min_value=0x00, max_value=0xFF))
-def test_relative_repr(offset):
-    r = repr(Relative(offset))
-    assert r.startswith('Relative')
+def test_relative8_repr(offset):
+    r = repr(Relative8(offset))
+    assert r.startswith('Relative8')
     assert str(offset) in r
     assert check_balanced(r)
 
 @given(offset=integers(min_value=0x00, max_value=0xFF))
-def test_relative_equality(offset):
-    assert Relative(offset) == Relative(offset)
+def test_relative8_equality(offset):
+    assert Relative8(offset) == Relative8(offset)
 
 @given(a=integers(min_value=0x00, max_value=0xFF),
        b=integers(min_value=0x00, max_value=0xFF))
-def test_relative_inequality(a, b):
+def test_relative8_inequality(a, b):
     assume(a != b)
-    assert Relative(a) != Relative(b)
+    assert Relative8(a) != Relative8(b)
 
 @given(offset=integers(min_value=0x00, max_value=0xFF))
-def test_relative_inequality_different_types(offset):
-    assert Relative(offset) != object()
+def test_relative8_inequality_different_types(offset):
+    assert Relative8(offset) != object()
 
 @given(offset=integers(min_value=0x00, max_value=0xFF))
-def test_relative_equal_hash(offset):
-    assert hash(Relative(offset)) == hash(Relative(offset))
+def test_relative8_equal_hash(offset):
+    assert hash(Relative8(offset)) == hash(Relative8(offset))
+
+
+
+@given(offset=integers(min_value=0x0000, max_value=0xFFFF))
+def test_relative16_value(offset):
+    assert Relative16(offset).offset == offset
+
+@given(offset=integers(max_value=-1))
+def test_relative16_negative_offsets_raise_value_error(offset):
+    with raises(ValueError):
+        Relative16(offset)
+
+@given(offset=integers(min_value=0x10000))
+def test_relative16_two_byte_offsets_raise_value_error(offset):
+    with raises(ValueError):
+        Relative16(offset)
+
+@given(offset=integers(min_value=0x0000, max_value=0xFFFF))
+def test_relative16_repr(offset):
+    r = repr(Relative16(offset))
+    assert r.startswith('Relative16')
+    assert str(offset) in r
+    assert check_balanced(r)
+
+@given(offset=integers(min_value=0x0000, max_value=0xFFFF))
+def test_relative16_equality(offset):
+    assert Relative16(offset) == Relative16(offset)
+
+@given(a=integers(min_value=0x0000, max_value=0xFFFF),
+       b=integers(min_value=0x0000, max_value=0xFFFF))
+def test_relative16_inequality(a, b):
+    assume(a != b)
+    assert Relative16(a) != Relative16(b)
+
+@given(offset=integers(min_value=0x0000, max_value=0xFFFF))
+def test_relative16_inequality_different_types(offset):
+    assert Relative16(offset) != object()
+
+@given(offset=integers(min_value=0x0000, max_value=0xFFFF))
+def test_relative16_equal_hash(offset):
+    assert hash(Relative16(offset)) == hash(Relative16(offset))
 
 @given(items=lists(elements=integers(min_value=0x0000, max_value=0xFFFF), min_size=1))
 def test_integers_values(items):

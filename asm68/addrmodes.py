@@ -1,9 +1,8 @@
 import reprlib
 from numbers import Integral
 
-from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8
+from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8, REL16
 from asm68.label import Label
-from registers import AutoIncrementedRegister
 
 
 class Inherent:
@@ -191,13 +190,38 @@ class Indexed:
         return hash((self._base, self._offset))
 
 
-class Relative:
+class Relative8:
 
     codes = {REL8}
 
     def __init__(self, offset):
         if not (0x00 <= offset <= 0xFF):
-            raise ValueError("Relative address 0x{:02X} out of range 0x00-0xFF".format(offset))
+            raise ValueError("Relative8 address 0x{:02X} out of range 0x00-0xFF".format(offset))
+        self._offset = offset
+
+    @property
+    def offset(self):
+        return self._offset
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, self._offset)
+
+    def __eq__(self, rhs):
+        if not isinstance(rhs, self.__class__):
+            return NotImplemented
+        return self._offset == rhs._offset
+
+    def __hash__(self):
+        return hash(self._offset)
+
+
+class Relative16:
+
+    codes = {REL16}
+
+    def __init__(self, offset):
+        if not (0x0000 <= offset <= 0xFFFF):
+            raise ValueError("Relative8 address 0x{:04X} out of range 0x0000-0xFFFF".format(offset))
         self._offset = offset
 
     @property

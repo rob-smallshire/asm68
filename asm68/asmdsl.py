@@ -1,15 +1,14 @@
-import reprlib
 import weakref
+from collections.abc import Set
 from functools import singledispatch
+from numbers import Integral
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
-     Integers
-from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
+    Integers
 from asm68.label import Label
-from numbers import Integral
-from collections.abc import Set
-
+from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
 from asm68.registers import Register, AutoIncrementedRegister
+from util import single
 
 
 class AsmDsl:
@@ -129,7 +128,6 @@ def _(operand):
 
 @parse_operand.register(Label)
 def _(operand):
-    # TODO: Label is not an addressing mode, so this should be replaced with Relative or ExtendedDirect depending on what the instruction supports
     return operand
 
 
@@ -150,88 +148,3 @@ def _(operand):
         raise ValueError("Indirect address 0x{:X} out of range 0x0000-0xFFFF".format(item))
     else:
         raise TypeError("Expected integer address or label. Got {}".format(item))
-
-
-
-def single(iterable):
-    i = iter(iterable)
-    try:
-        value = next(i)
-    except StopIteration:
-        raise ValueError("Expected one item. Too few items in {}".format(reprlib.repr(iterable)))
-    try:
-        next(i)
-        raise ValueError("Expected one item. Too many items in {}".format(reprlib.repr(iterable)))
-    except StopIteration:
-        return value
-
-#
-# @parse_operand.register(type(None))
-# def inherent(operand):
-#     return Inherent()
-#
-#
-# @parse_operand.register(Integral)
-# def immediate(operand):
-#     # TODO: Validation
-#     return Immediate8(operand)
-#
-#
-# @parse_operand.register(Set)
-# def direct(operand):
-#     if len(operand) != 1:
-#         raise TypeError("Could not parse {}. Direct addressing mode has form {{address}} with a "
-#                         "single address.".format(operand))
-#     item = next(operand)
-#     if isinstance(item, Integral):
-#         if item < 0:
-#             raise ValueError("Direct address {} is negative.".format(item))
-#         if item <= 0xFF:
-#             return PageDirect(item)
-#         if item <= 0xFFFF:
-#             return ExtendedDirect(item)
-#         raise ValueError("Direct address 0x{:04X} out of range 0x0000-0xFFFF".format(item))
-#     elif isinstance(item, Label):
-#         return ExtendedDirect(label)
-#     else:
-#         raise TypeError("Expected integer address or label. Got {}".format(operand))
-#
-#
-# @parse_operand.register(tuple)
-# def indexed(operand):
-#     if len(operand) == 1:
-#         r = operand[0]
-#         if not isinstance(r, Register):
-#             raise TypeError("{} is not a register name. The first element of zero-offset indexed address "
-#                             "must be a register name".format(r))
-#         return ZeroOffsetIndexed(r)
-#
-#     elif len(operand) == 2:
-#         r, offset = operand
-#         if not isinstance(r, Register):
-#             raise TypeError("{} is not a register name. The first element of zero-offset indexed address "
-#                             "must be a register name".format(r))
-#         if r == PCR:
-#             if isinstance(offset, Integral):
-#                 if not (0 <= offset <= 0xFFFF):
-#                     raise ValueError("0x{:04X} offset out of range 0x0000-0xFFFF.")
-#                 return ProgramCounterRelativeIndexed(offset)
-#             elif isinstance(offset, Label):
-#                 return ProgramCounterRelativeIndexed(offset)
-#             else:
-#                 raise TypeError("{} cannot be used as the target for program counter relative (PCR) addressing".format(offset))
-#         else:
-#             if isinstance(offset, Integral):
-#                 if not (-32768 <= offset <= 32767):
-#                     raise ValueError("{:X} offset out of range -0x8000 to 0x7FFF.")
-#             return ConstantOffsetIndexed(r, offset)
-#
-#     elif len(operand == 3):
-#         # Pre-/Post- Increment/Decrement
-#         (Integral, Register, Integral)
-#
-#     else:
-#         raise TypeError("Indexed addressing mode can have only 1, 2 or 3 arguments.")
-#
-
-

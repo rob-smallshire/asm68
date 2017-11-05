@@ -335,3 +335,30 @@ def test_levethal_5_2__16_bit_sum_of_data():
         '26 F8'
         'DD 40'
         '3F')
+
+def test_levethal_5_2__16_bit_sum_of_data_long_offset():
+    asm = AsmDsl()
+    asm         (   CLRA,               "MSB'S OF SUM = ZERO"       )
+    asm         (   CLRB,               "LSB'S OF SUM = ZERO"       )
+    asm         (   LDX,    0x43,       "POINT TO START OF ARRAY"   )
+    asm  .SUMD  (   ADDB,   {0:X+1},    "SUM = SUM + DATA"          )
+    asm         (   ADCA,   0,          "     AND ADD IN CARRY"     )
+    asm         (   DEC,    {0x42},                                 )
+    asm         (   LBRA,   asm.TEST                                )
+    asm  .TEST  (   LBNE,   asm.SUMD                                )
+    asm         (   STD,    {0x40},     "SAVE SUM"                  )
+    asm         (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '4F'
+        '5F'
+        '8E 0043'
+        'EB 80'
+        '89 00'
+        '0A 42'
+        '16 0000' # Check!
+        '1026 FFF3' # Check!
+        'DD 40'
+        '3F')
+

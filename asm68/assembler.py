@@ -2,9 +2,11 @@ from collections import defaultdict
 from functools import singledispatch
 from itertools import islice
 
+import sys
+
 from asm68.addrmodecodes import REL8, REL16, IMM
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
-from asm68.asmdsl import single
+from util import single
 from asm68.directives import Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
@@ -143,7 +145,7 @@ def _(operand, opcode_key, asm, statement):
 def _(operand, opcode_key, asm, statement):
     return (operand.address, )
 
-branch_opcode_widths = {
+branch_operand_widths = {
     REL8: 1,
     REL16: 2
 }
@@ -153,18 +155,18 @@ def _(operand, opcode_key, asm, statement):
     # If we know the address of the label, use it
     if operand.name in asm._label_addresses:
         target_address = asm._label_addresses[operand.name]
-        if opcode_key in branch_opcode_widths:
-            operand_bytes_length = branch_opcode_widths[opcode_key]
+        if opcode_key in branch_operand_widths:
+            operand_bytes_length = branch_operand_widths[opcode_key]
             offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
             unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
-            return (unsigned_offset, )
+            return tuple(unsigned_offset.to_bytes(length=operand_bytes_length, signed=False, byteorder='big'))
         else:
             assert opcode_key is IMM
             return (hi(target_address), lo(target_address))
     else:
         asm._more_passes_required = True
-        if opcode_key in branch_opcode_widths:
-            return (0, )
+        if opcode_key in branch_operand_widths:
+            return (0, ) * branch_operand_widths[opcode_key]
         else:
             assert opcode_key is IMM
             return (0, 0)
