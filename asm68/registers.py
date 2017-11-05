@@ -72,7 +72,8 @@ class Crement:
 
     def __init__(self, register, delta):
         if delta not in {-2, -1, +1, +2}:
-            raise ValueError(f"Auto post-increment {delta} of {register.name} not in the range 0 to 2")
+            direction = 'post-inc' if delta > 0 else 'pre-dec'
+            raise ValueError(f"Auto {direction}rement {delta} of {register.name} not in the range 0 to 2")
         self._register = register
         self._delta = delta
 

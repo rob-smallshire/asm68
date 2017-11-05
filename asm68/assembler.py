@@ -188,8 +188,8 @@ ACCUMULATOR_OFFSET_POST_BYTE = {
 INDEX_CREMENT_POST_BYTE = {
     +1: 0b10000000,
     +2: 0b10000001,
-    -1: 0x10000010,
-    -2: 0x10000011,
+    -1: 0b10000010,
+    -2: 0b10000011,
 }
 
 @assemble_operand.register(Indexed)
@@ -209,5 +209,7 @@ def _(operand, opcode_key, asm, statement):
         post_byte = INDEX_CREMENT_POST_BYTE[operand.base.delta]
         post_byte |= rr << 5
         return (post_byte, )
+    else:
+        raise ValueError(f"Cannot use {operand.base} as a base register for indexed addressing modes")
 
 
