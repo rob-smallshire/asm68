@@ -25,6 +25,7 @@ MNEMONIC_TO_STATEMENT = frozendict({
     BHS: Bhs,
     BLO: Blo,
     BNE: Bne,
+    BPL: Bpl,
     BRA: Bra,
     CLRA: Clra,
     CLRB: Clrb,

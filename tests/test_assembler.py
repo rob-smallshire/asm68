@@ -362,3 +362,26 @@ def test_levethal_5_2__16_bit_sum_of_data_long_offset():
         'DD 40'
         '3F')
 
+def test_levethal_5_3__number_of_negative_elements():
+    asm = AsmDsl()
+    asm         (   LDX,    0x42,       "POINT TO FIRST NUMBER"         )
+    asm         (   CLRB,               "NUMBER OF NEGATIVES = ZERO"    )
+    asm .CHKNEG (   LDA,    {0:X+1},    "IS NEXT ELEMENT NEGATIVE"      )
+    asm         (   BPL,    asm.CHCNT                                   )
+    asm         (   INCB,               "YES, ADD 1 TO # OF NEGATIVES"  )
+    asm .CHCNT  (   DEC,    {0x41}                                      )
+    asm         (   BNE,    asm.CHKNEG                                  )
+    asm         (   STB,    {0x40},     "SAVE NUMBER OF NEGATIVES"      )
+    asm         (   SWI                                                 )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '8E 0042'
+        '5F'
+        'A6 80'
+        '2A 01'
+        '5C'
+        '0A 41'
+        '26 F7'
+        'D7 40'
+        '3F')

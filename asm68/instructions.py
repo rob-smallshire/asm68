@@ -106,6 +106,10 @@ class Bne(Instruction):
     mnemonic = BNE
 
 
+class Bpl(Instruction):
+    mnemonic = BPL
+
+
 class Bra(Instruction):
     mnemonic = BRA
 

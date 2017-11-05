@@ -25,6 +25,7 @@ OPCODES = frozendict({
     BHS:   {                                                                   REL8: 0x24   },
     BLO:   {                                                                   REL8: 0x25   },
     BNE:   {                                                                   REL8: 0x26   },
+    BPL:   {                                                                   REL8: 0x2A   },
     BRA:   {                                                                   REL8: 0x20   },
     CLRA:  { INH: 0x4F,                                                                     },
     CLRB:  { INH: 0x5F,                                                                     },
