@@ -3,7 +3,7 @@ from numbers import Integral
 
 from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8
 from asm68.label import Label
-from registers import Crement
+from registers import AutoIncrementedRegister
 
 
 class Inherent:
@@ -163,8 +163,9 @@ class Indexed:
     codes = {IDX}
 
     def __init__(self, base, offset):
-        if isinstance(base, Crement) and offset != 0:
-            raise ValueError("Attempt to use post/pre- increment/decrement can only be used with zero offset")
+        if hasattr(base, 'delta'):
+            if offset != 0:
+                raise ValueError("Attempt to use post/pre- increment/decrement can only be used with zero offset")
         if isinstance(offset, Integral) and not (-32768 <= offset <= +32767):
             raise ValueError(f"{offset} cannot be represented as a 16-bit signed offset")
         self._base = base

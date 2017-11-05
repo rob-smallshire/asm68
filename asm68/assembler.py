@@ -9,7 +9,7 @@ from asm68.directives import Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES
-from asm68.registers import X, Y, U, S, A, B, D, E, F, W, Crement
+from asm68.registers import X, Y, U, S, A, B, D, E, F, W, AutoIncrementedRegister
 from asm68.twiddle import twos_complement, hi, lo
 
 
@@ -202,7 +202,7 @@ def _(operand, opcode_key, asm, statement):
         post_byte = ACCUMULATOR_OFFSET_POST_BYTE[operand.offset]
         post_byte |= rr << 5
         return (post_byte, )
-    elif isinstance(operand.base, Crement):
+    elif isinstance(operand.base, AutoIncrementedRegister):
         if operand.base.register not in RR:
             raise ValueError(f"Cannot use auto pre-/post- increment or decrement with register {operand.base.register}")
         rr = RR[operand.base.register]

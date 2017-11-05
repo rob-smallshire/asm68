@@ -61,14 +61,15 @@ class Register:
     def __add__(self, rhs):
         if not isinstance(rhs, Integral):
             return NotImplemented
-        return Crement(self, +rhs)
+        return AutoIncrementedRegister(self, +rhs)
 
     def __rsub__(self, lhs):
         if not isinstance(lhs, Integral):
             return NotImplemented
-        return Crement(self, -lhs)
+        return AutoIncrementedRegister(self, -lhs)
 
-class Crement:
+
+class AutoIncrementedRegister:
 
     def __init__(self, register, delta):
         if delta not in {-2, -1, +1, +2}:
@@ -89,7 +90,7 @@ class Crement:
         return "{}({}, {:+})".format(self.__class__.__name__, self.register, self.delta)
 
     def __eq__(self, rhs):
-        if not isinstance(rhs, Crement):
+        if not isinstance(rhs, AutoIncrementedRegister):
             return NotImplemented
         return (self.delta == rhs.delta) and (self.register == rhs.register)
 
