@@ -9,7 +9,7 @@ from asm68.directives import Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES
-from asm68.registers import X, Y, U, S, A, B, D, E, F, W
+from asm68.registers import X, Y, U, S, A, B, D, E, F, W, Crement
 from asm68.twiddle import twos_complement, hi, lo
 
 
@@ -185,15 +185,28 @@ ACCUMULATOR_OFFSET_POST_BYTE = {
     W: 0b10001110
 }
 
+INDEX_CREMENT_POST_BYTE = {
+    +1: 0b10000000,
+    +2: 0b10000001,
+    -1: 0x10000010,
+    -2: 0x10000011,
+}
+
 @assemble_operand.register(Indexed)
 def _(operand, opcode_key, asm, statement):
-    try:
+    if operand.base in RR:
         rr = RR[operand.base]
-    except KeyError:
-        raise ValueError("Cannot use {} as a base for indexed addressing.".format(operand.base))
-    if operand.offset in ACCUMULATOR_OFFSET_POST_BYTE:
+        if operand.offset not in ACCUMULATOR_OFFSET_POST_BYTE:
+            raise ValueError(f"Cannot use indexed addressing offset {operand.offset} with base {operand.base}")
         # Accumulator offset
         post_byte = ACCUMULATOR_OFFSET_POST_BYTE[operand.offset]
+        post_byte |= rr << 5
+        return (post_byte, )
+    elif isinstance(operand.base, Crement):
+        if operand.base.register not in RR:
+            raise ValueError(f"Cannot use auto pre-/post- increment or decrement with register {operand.base.register}")
+        rr = RR[operand.base.register]
+        post_byte = INDEX_CREMENT_POST_BYTE[operand.base.delta]
         post_byte |= rr << 5
         return (post_byte, )
 

@@ -9,7 +9,8 @@ from asm68.label import Label
 from numbers import Integral
 from collections.abc import Set
 
-from asm68.registers import Register
+from asm68.registers import Register, Crement
+
 
 class AsmDsl:
 
@@ -122,7 +123,7 @@ def _(operand):
     offset, base = single(operand.items())
     if not isinstance(offset, (Register, Integral)):
         raise TypeError("Expected integer offset. Got {}".format(offset))
-    if not isinstance(base, Register):
+    if not isinstance(base, (Register, Crement)):
         raise TypeError("{} is not a base".format(base))
     return Indexed(base=base, offset=offset)
 

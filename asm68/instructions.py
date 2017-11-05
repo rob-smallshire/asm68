@@ -102,6 +102,10 @@ class Blo(Instruction):
     mnemonic = BLO
 
 
+class Bne(Instruction):
+    mnemonic = BNE
+
+
 class Clra(Instruction):
     inherent_register = A
     mnemonic = CLRA
