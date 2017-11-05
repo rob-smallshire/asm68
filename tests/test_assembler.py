@@ -311,25 +311,27 @@ def test_levethal_5_1b_sum_of_data():
         '26 FB'
         '97 40'
         '3F')
-#
-# def test_levethal_5_2__16_bit_sum_of_data():
-#     asm = AsmDsl()
-#     asm         (   CLRA,               "SUM = ZERO"                )
-#     asm         (   LDB,    {0x41},     "COUNT = LENGTH OF ARRAY"   )
-#     asm         (   LDX,    0x42,       "POINT TO START OF ARRAY"   )
-#     asm  .SUMD  (   ADDA,   {0:X+1},    "ADD NUMBER TO SUM"         )
-#     asm         (   DECB                                            )
-#     asm         (   BNE,    asm.SUMD                                )
-#     asm         (   STA,    {0x40}                                  )
-#     asm         (   SWI                                             )
-#
-#     code = assemble(statements(asm))
-#     assert code[0] == bytes.fromhex(
-#         '4F'
-#         'D6 41'
-#         '8E 0042'
-#         'AB 80'
-#         '5A'
-#         '26 FB'
-#         '97 40'
-#         '3F')
+
+def test_levethal_5_2__16_bit_sum_of_data():
+    asm = AsmDsl()
+    asm         (   CLRA,               "MSB'S OF SUM = ZERO"       )
+    asm         (   CLRB,               "LSB'S OF SUM = ZERO"       )
+    asm         (   LDX,    0x43,       "POINT TO START OF ARRAY"   )
+    asm  .SUMD  (   ADDB,   {0:X+1},    "SUM = SUM + DATA"          )
+    asm         (   ADCA,   0,          "     AND ADD IN CARRY"     )
+    asm         (   DEC,    {0x42},                                 )
+    asm         (   BNE,    asm.SUMD                                )
+    asm         (   STD,    {0x40},     "SAVE SUM"                  )
+    asm         (   SWI                                             )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '4F'
+        '5F'
+        '8E 0043'
+        'EB 80'
+        '89 00'
+        '0A 42'
+        '26 F8'
+        'DD 40'
+        '3F')
