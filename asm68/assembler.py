@@ -10,7 +10,7 @@ from util import single
 from asm68.directives import Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
-from asm68.opcodes import OPCODES
+from asm68.opcodes import OPCODES, Integral
 from asm68.registers import X, Y, U, S, A, B, D, E, F, W, AutoIncrementedRegister
 from asm68.twiddle import twos_complement, hi, lo
 
@@ -102,7 +102,8 @@ def _(statement, asm):
     opcode_key = single(operand.codes & opcodes.keys())
     opcode = opcodes[opcode_key]
     asm._opcode_bytes = (opcode,) if opcode <= 0xFF else (hi(opcode), lo(opcode))
-    asm._extend(asm._opcode_bytes + assemble_operand(operand, opcode_key, asm, statement))
+    operand_bytes = assemble_operand(operand, opcode_key, asm, statement)
+    asm._extend(asm._opcode_bytes + operand_bytes)
 
 @assemble_statement.register(Org)
 def _(statement, asm):
@@ -159,7 +160,10 @@ def _(operand, opcode_key, asm, statement):
             operand_bytes_length = branch_operand_widths[opcode_key]
             offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
             unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
-            return tuple(unsigned_offset.to_bytes(length=operand_bytes_length, signed=False, byteorder='big'))
+            if opcode_key == REL8:
+                return (unsigned_offset, )
+            elif opcode_key == REL16:
+                return (hi(unsigned_offset), lo(unsigned_offset))
         else:
             assert opcode_key is IMM
             return (hi(target_address), lo(target_address))
@@ -198,12 +202,38 @@ INDEX_CREMENT_POST_BYTE = {
 def _(operand, opcode_key, asm, statement):
     if operand.base in RR:
         rr = RR[operand.base]
-        if operand.offset not in ACCUMULATOR_OFFSET_POST_BYTE:
+        if operand.offset in ACCUMULATOR_OFFSET_POST_BYTE:
+            # Accumulator offset
+            post_byte = ACCUMULATOR_OFFSET_POST_BYTE[operand.offset]
+            post_byte |= rr << 5
+            return (post_byte, )
+        elif isinstance(operand.offset, Integral):
+            if operand.offset == 0:
+                post_byte = 0b10000100
+                post_byte |= rr << 5
+                return (post_byte, )
+            elif -16 <= operand.offset <= +15:
+                # 5-bit offset
+                post_byte = twos_complement(operand.offset, 5)
+                post_byte |= rr << 5
+                return (post_byte, )
+            elif -128 <= operand.offset <= +127:
+                # 8-bit offset
+                post_byte = 0b10001000
+                post_byte |= rr << 5
+                offset_byte = twos_complement(operand.offset, 8)
+                return (post_byte, offset_byte)
+            elif -32768 <= operand.offset <= +32767:
+                # 16-bit offset
+                post_byte = 0b10001001
+                post_byte |= rr << 5
+                offset_bytes = twos_complement(operand.offset, 8)
+                return (post_byte, hi(offset_bytes), lo(offset_bytes))
+            else:
+                raise ValueError(f"Cannot use indexed addressing offset {operand.offset} with base {operand.base} is out of the range -32768 to +32767")
+        else:
             raise ValueError(f"Cannot use indexed addressing offset {operand.offset} with base {operand.base}")
-        # Accumulator offset
-        post_byte = ACCUMULATOR_OFFSET_POST_BYTE[operand.offset]
-        post_byte |= rr << 5
-        return (post_byte, )
+
     elif isinstance(operand.base, AutoIncrementedRegister):
         if operand.base.register not in RR:
             raise ValueError(f"Cannot use auto pre-/post- increment or decrement with register {operand.base.register}")

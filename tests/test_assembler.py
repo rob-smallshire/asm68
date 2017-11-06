@@ -385,3 +385,29 @@ def test_levethal_5_3__number_of_negative_elements():
         '26 F7'
         'D7 40'
         '3F')
+
+def test_leventhal_5_4__maximum_value():
+    asm = AsmDsl()
+    asm         (   LDB,    {0x41},     "COUNT = NUMBER OF ELEMENTS"            )
+    asm         (   CLRA,               "MAX = (MINIMUM POSSIBLE)"              )
+    asm         (   LDX,    0x42,       "POINT TO FIRST ENTRY"                  )
+    asm   .MAXM (   CMPA,   {0:X+1},    "IS CURRENT ENTRY GREATER THAN MAX"     )
+    asm         (   BHS,    asm.NOCHG                                           )
+    asm         (   LDA,    {-1:X},     "YES, REPLACE MAX WITH CURRENT ENTRY"   )
+    asm  .NOCHG (   DECB,                                                       )
+    asm         (   BNE,    asm.MAXM,                                           )
+    asm         (   STA,    {0x40},     "SAVE MAXIMUM"                          )
+    asm         (   SWI                                                         )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        'D6 41'
+        '4F'
+        '8E 0042'
+        'A1 80'
+        '24 02'
+        'A6 1F'
+        '5A'
+        '26 F7'
+        '97 40'
+        '3F')
