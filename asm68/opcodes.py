@@ -1,8 +1,7 @@
 from frozendict import frozendict
 
-from addrmodecodes import REL16
-from .addrmodes import *
-from .mnemonics import *
+from asm68.addrmodes import *
+from asm68.mnemonics import *
 
 OPCODES = frozendict({
     ABX:   { INH: 0x3A,                                                                     },

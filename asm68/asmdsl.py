@@ -3,12 +3,12 @@ from collections.abc import Set
 from functools import singledispatch
 from numbers import Integral
 
-from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed, \
-    Integers
+from asm68.addrmodes import (Immediate, Inherent, PageDirect, ExtendedDirect,
+                             ExtendedIndirect, Registers, Indexed, Integers)
 from asm68.label import Label
 from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
 from asm68.registers import Register, AutoIncrementedRegister
-from util import single
+from asm68.util import single
 
 
 class AsmDsl:

@@ -2,11 +2,9 @@ from collections import defaultdict
 from functools import singledispatch
 from itertools import islice
 
-import sys
-
 from asm68.addrmodecodes import REL8, REL16, IMM
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
-from util import single
+from asm68.util import single
 from asm68.directives import Org, Fcb
 from asm68.instructions import Instruction
 from asm68.label import Label
