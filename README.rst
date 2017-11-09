@@ -31,3 +31,12 @@ Example use of the embedded assembly syntax::
 The resulting ``code`` object will be a dictionary mapping of integer
 addresses to contiguous blocks of code or data representes as bytes
 objects.
+
+
+Origin
+======
+
+This work started out as a fork of Craig Thomas's (GitHub @craigthomas)
+https://github.com/craigthomas/CoCo3Assembler but rapidly diverged
+to pursue it's own goals and the only vestige of the original code is
+the opcode table, which even so is soemwhat modified.
