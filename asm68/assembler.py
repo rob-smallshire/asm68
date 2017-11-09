@@ -227,10 +227,8 @@ def _(operand, opcode_key, asm, statement):
                 # 16-bit offset
                 post_byte = 0b10001001
                 post_byte |= rr << 5
-                offset_bytes = twos_complement(operand.offset, 8)
+                offset_bytes = twos_complement(operand.offset, 16)
                 return (post_byte, hi(offset_bytes), lo(offset_bytes))
-            else:
-                raise ValueError(f"Cannot use indexed addressing offset {operand.offset} with base {operand.base} is out of the range -32768 to +32767")
         else:
             raise ValueError(f"Cannot use indexed addressing offset {operand.offset} with base {operand.base}")
 
