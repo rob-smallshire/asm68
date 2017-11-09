@@ -7,7 +7,7 @@ from asm68.asmdsl import AsmDsl, statements
 from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
 from asm68.registers import B, X, A, Y
-from twiddle import twos_complement
+from asm68.twiddle import twos_complement
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():
