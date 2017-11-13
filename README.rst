@@ -5,7 +5,15 @@ This package implements an *embedded domain-specific-language* in
 Python for representing Motorola 6809 or Hitachi 6309 assembly code,
 together with a assembler to machine code.
 
+Status
+======
+
+Build status:
+
 The assembler is currently in development.
+
+.. image:: https://travis-ci.org/rob-smallshire/asm68.svg?branch=master
+    :target: https://travis-ci.org/rob-smallshire/asm68
 
 Example
 =======
