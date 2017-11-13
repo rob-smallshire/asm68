@@ -1,0 +1,2 @@
+hypothesis>=3.33.0
+pytest>=3.2.3
