@@ -8,6 +8,7 @@ from tests.predicates import is_valid_variable_name, check_balanced
 @composite
 def label_names(draw):
     label_name = draw(from_regex(r'\A[A-Za-z][A-Za-z0-9_]*\Z'))
+    assume(is_valid_variable_name(label_name))
     return label_name
 
 @given(name=label_names())
