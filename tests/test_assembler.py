@@ -494,3 +494,27 @@ def test_leventhal_6_1a__length_of_a_string_of_characters():
         '20 F9'
         'D7 40'
         '3F')
+
+def test_leventhal_6_1b__length_of_a_string_of_characters():
+    asm = AsmDsl()
+    asm         (   LDB,    0xFF,       "STRING LENGTH = -1"            )
+    asm         (   LDX,    0x41,       "POINT TO START OF STRING"      )
+    asm         (   LDA,    0x0D,       "GET ASCII CARRIAGE RETURN "
+                                             "(STRING TERMINATOR)"      )
+    asm  .CHKCR (   INCB,               "ADD 1 TO STRING LENGTH"        )
+    asm         (   CMPA,   {0:X+1},    "IS NEXT CHARACTER "
+                                                  "A CARRIAGE RETURN?"  )
+    asm         (   BNE,    asm.CHKCR,   "NO, KEEP CHECKING"            )
+    asm  .DONE  (   STB,    {0x40},     "YES, SAVE STRING LENGTH"       )
+    asm         (   SWI                                                 )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        'C6 FF'
+        '8E 0041'
+        '86 0D'
+        '5C'
+        'A1 80'
+        '26 FB'
+        'D7 40'
+        '3F')
