@@ -468,3 +468,29 @@ def test_index_with_illegal_offset(offset):
 
     with raises(ValueError):
         asm(   LDA,    {offset:X},  "OUT-OF-RANGE OFFSET FROM X REGISTER"   )
+
+def test_leventhal_6_1a__length_of_a_string_of_characters():
+    asm = AsmDsl()
+    asm         (   CLRB,               "STRING LENGTH = ZERO"          )
+    asm         (   LDX,    0x41,       "POINT TO START OF STRING"      )
+    asm         (   LDA,    0x0D,       "GET ASCII CARRIAGE RETURN "
+                                             "(STRING TERMINATOR)"      )
+    asm  .CHKCR (   CMPA,   {0:X+1},    "IS NEXT CHARACTER "
+                                                  "A CARRIAGE RETURN?"  )
+    asm         (   BEQ,    asm.DONE,   "YES, END OF STRING"            )
+    asm         (   INCB,               "NO, ADD 1 TO STRING LENGTH"    )
+    asm         (   BRA,    asm.CHKCR,                                  )
+    asm  .DONE  (   STB,    {0x40},     "SAVE STRING LENGTH"            )
+    asm         (   SWI                                                 )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '5F'
+        '8E 0041'
+        '86 0D'
+        'A1 80'
+        '27 03'
+        '5C'
+        '20 F9'
+        'D7 40'
+        '3F')

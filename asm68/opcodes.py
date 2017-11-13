@@ -19,6 +19,7 @@ OPCODES = frozendict({
     ASRA:  { INH: 0x47,                                                                     },
     ASRB:  { INH: 0x57,                                                                     },
     ASR:   {                           DIR: 0x07,   IDX: 0x67,   EXT: 0x77,                 },
+    BEQ:   {                                                                   REL8: 0x27   },
     BITA:  {              IMM: 0x85,   DIR: 0x95,   IDX: 0xA5,   EXT: 0xB5,                 },
     BITB:  {              IMM: 0xC5,   DIR: 0xD5,   IDX: 0xE5,   EXT: 0xF5,                 },
     BHS:   {                                                                   REL8: 0x24   },

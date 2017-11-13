@@ -84,6 +84,10 @@ class Asr(Instruction):
     mnemonic = ASR
 
 
+class Beq(Instruction):
+    mnemonic = BEQ
+
+
 class Bita(Instruction):
     inherent_register = A
     mnemonic = BITA
