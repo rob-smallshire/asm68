@@ -4,4 +4,7 @@ python:
 install:
   - "pip install -r requirements.txt"
   - "pip install -r tests/test-requirements.txt"
-script: pytest tests
+script:
+    - pytest --cov-report= --cov=asm68 tests/
+after_success:
+    - coveralls
