@@ -1,0 +1,12 @@
+module: asm68
+
+baseline: 10
+
+exclude-modules:
+
+test-runner:
+  name: pytest
+  args: tests
+
+execution-engine:
+  name: local
