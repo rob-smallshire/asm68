@@ -1,6 +1,6 @@
 def twos_complement(n, num_bits):
     if num_bits < 1:
-        raise ValueError("Two's cmplement cannot be represented in less than 1 bit")
+        raise ValueError("Two's complement cannot be represented in less than 1 bit")
     lower = -(2**(num_bits - 1))
     higher = 2**(num_bits - 1) - 1
     if not (lower <= n <= higher):
