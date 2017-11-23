@@ -1,12 +1,12 @@
 import pytest
 from hypothesis import given, assume
-from hypothesis.strategies import lists, one_of, integers
+from hypothesis.strategies import lists, one_of, integers, sampled_from
 from pytest import raises, skip
 
 from asm68.asmdsl import AsmDsl, statements
 from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
-from asm68.registers import B, X, A, Y
+from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S
 from asm68.twiddle import twos_complement
 
 
@@ -413,61 +413,72 @@ def test_leventhal_5_4__maximum_value():
         '97 40'
         '3F')
 
-def test_index_with_zero_offset():
+INDEX_REGISTER_CODES = {
+    X: 0b00000000,
+    Y: 0b00100000,
+    U: 0b01000000,
+    S: 0b01100000}
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_zero_offset(index_register):
     asm = AsmDsl()
-    asm         (   LDA,    {0:X},     "ZERO OFFSET FROM X REGISTER"   )
+    asm         (   LDA,    {0:index_register},     "ZERO OFFSET FROM INDEX REGISTER"   )
 
     code = assemble(statements(asm))
-    assert code[0] == bytes.fromhex(
-        'A6 84')
+    assert code[0] == bytes(
+        (0xA6,
+         0b10000100 | INDEX_REGISTER_CODES[index_register]))
 
-@given(offset=integers(min_value=-16, max_value=+15))
-def test_index_with_five_bit_offset(offset):
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
+       offset=integers(min_value=-16, max_value=+15))
+def test_index_with_five_bit_offset(index_register, offset):
     assume(offset != 0)
     asm = AsmDsl()
-    asm         (   LDA,    {0:X},     "ZERO OFFSET FROM X REGISTER"   )
+    asm(   LDA,    {offset:index_register}, "5-BIT OFFSET FROM INDEX REGISTER"   )
 
     code = assemble(statements(asm))
-    assert code[0] == bytes((0xA6, twos_complement(offset, 5)))
+    assert code[0] == bytes(
+        (0xA6,
+         INDEX_REGISTER_CODES[index_register] | twos_complement(offset, 5)))
 
-@given(offset=integers(min_value=-16, max_value=+15))
-def test_index_with_five_bit_offset(offset):
-    assume(offset != 0)
-    asm = AsmDsl()
-    asm(   LDA,    {offset:X}, "5-BIT OFFSET FROM X REGISTER"   )
-
-    code = assemble(statements(asm))
-    assert code[0] == bytes((0xA6, twos_complement(offset, 5)))
-
-@given(offset=one_of(integers(min_value=-128, max_value=-17),
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
+       offset=one_of(integers(min_value=-128, max_value=-17),
                      integers(min_value=+16, max_value=+127)))
-def test_index_with_eight_bit_offset(offset):
+def test_index_with_eight_bit_offset(index_register, offset):
     assume(offset != 0)
     asm = AsmDsl()
-    asm(   LDA,    {offset:X},  "8-BIT OFFSET FROM X REGISTER"   )
+    asm(   LDA,    {offset:index_register},  "8-BIT OFFSET FROM INDEX REGISTER"   )
 
     code = assemble(statements(asm))
-    assert code[0] == bytes((0xA6, 0x88, twos_complement(offset, 8)))
+    assert code[0] == bytes(
+        (0xA6,
+         0b10001000 | INDEX_REGISTER_CODES[index_register],
+         twos_complement(offset, 8)))
 
-@given(offset=one_of(integers(min_value=-32768, max_value=-129),
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
+       offset=one_of(integers(min_value=-32768, max_value=-129),
                      integers(min_value=+128, max_value=+32767)))
-def test_index_with_sixteen_bit_offset(offset):
+def test_index_with_sixteen_bit_offset(offset, index_register):
     assume(offset != 0)
     asm = AsmDsl()
-    asm(   LDA,    {offset:X},  "16-BIT OFFSET FROM X REGISTER"   )
+    asm(   LDA,    {offset:index_register},  "16-BIT OFFSET FROM INDEX REGISTER"   )
 
     code = assemble(statements(asm))
-    assert code[0] == bytes((0xA6, 0x89)) + twos_complement(offset, 16).to_bytes(
-                                length=2, byteorder='big', signed=False)
+    assert code[0] == (bytes(
+        (0xA6,
+         0b10001001 | INDEX_REGISTER_CODES[index_register]))
+        + twos_complement(offset, 16).to_bytes(
+        length=2, byteorder='big', signed=False))
 
-@given(offset=one_of(integers(max_value=-32769),
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
+       offset=one_of(integers(max_value=-32769),
                      integers(min_value=+32768)))
-def test_index_with_illegal_offset(offset):
+def test_index_with_illegal_offset(offset, index_register):
     assume(offset != 0)
     asm = AsmDsl()
 
     with raises(ValueError):
-        asm(   LDA,    {offset:X},  "OUT-OF-RANGE OFFSET FROM X REGISTER"   )
+        asm(   LDA,    {offset:index_register},  "OUT-OF-RANGE OFFSET FROM X REGISTER"   )
 
 def test_leventhal_6_1a__length_of_a_string_of_characters():
     asm = AsmDsl()
