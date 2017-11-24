@@ -1,4 +1,4 @@
-from hypothesis import given
+from hypothesis import given, assume
 from hypothesis.strategies import integers, data
 
 from pytest import raises
@@ -28,15 +28,19 @@ def test_twos_complement_negative(d):
 @given(d=data())
 def test_twos_complement_positive_too_narrow(d):
     value = d.draw(integers(min_value=0))
-    num_bits = d.draw(integers(max_value=value.bit_length() - 1))
+    num_bits = d.draw(integers(min_value=0, max_value=value.bit_length()))
+    assume(num_bits >= 1)
     with raises(ValueError):
         twos_complement(value, num_bits)
 
+def test_twos_complement_minus_one_too_narrow():
+    with raises(ValueError):
+        twos_complement(-1, 0)
 
 @given(d=data())
 def test_twos_complement_negative_too_narrow(d):
-    value = d.draw(integers(max_value=-1))
-    num_bits = d.draw(integers(max_value=value.bit_length() - 1))
+    value = d.draw(integers(max_value=-2))
+    num_bits = d.draw(integers(min_value=1, max_value=value.bit_length() - 1))
     with raises(ValueError):
         twos_complement(value, num_bits)
 
