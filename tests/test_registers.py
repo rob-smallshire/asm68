@@ -4,7 +4,8 @@ from hypothesis import given, assume
 from hypothesis.strategies import text, integers, one_of, just
 from pytest import raises
 
-from asm68.registers import Register, REGISTERS, AutoIncrementedRegister
+from asm68.registers import Register, REGISTERS, AutoIncrementedRegister, ACCUMULATORS, A, B, E, F, D, W, Q, X, Y, U, S, \
+    INDEX_REGISTERS, DP, CC, MD, PC, STATUS_REGISTERS
 from tests.alphabets import ASCII_LOWERCASE_AND_DIGITS
 from tests.predicates import check_balanced
 
@@ -185,3 +186,16 @@ def test_auto_incremented_register_hash_equality(m, delta):
     a = Register(m, len(m))
     b = Register(m, len(m))
     assert hash(AutoIncrementedRegister(a, delta)) == hash(AutoIncrementedRegister(b, delta))
+
+def test_6309_accumulators_register_set():
+    assert ACCUMULATORS == {A, B, E, F, D, W, Q}
+
+def test_6309_index_register_set():
+    assert INDEX_REGISTERS == {X, Y, U, S}
+
+def test_6309_status_register_set():
+    assert STATUS_REGISTERS == {DP, CC, MD, PC}
+
+def test_6309_register_set():
+    assert REGISTERS == {X, Y, U, S, A, B, E, F, D, W, Q, DP, CC, MD, PC}
+
