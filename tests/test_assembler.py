@@ -6,7 +6,7 @@ from pytest import raises, skip
 from asm68.asmdsl import AsmDsl, statements
 from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
-from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S
+from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S, E, D, F, W
 from asm68.twiddle import twos_complement
 
 
@@ -14,9 +14,11 @@ def test_assemble_unsupported_statement_type_raises_type_error():
     with raises(TypeError):
         assemble_statement(object(), None)
 
+
 def test_assemble_unsupported_operand_type_raises_type_error():
     with raises(TypeError):
         assemble_operand(object(), None, None, None)
+
 
 def test_assemble_org_without_immediate_operand_raises_type_error():
     asm = AsmDsl()
@@ -24,6 +26,7 @@ def test_assemble_org_without_immediate_operand_raises_type_error():
     s = statements(asm)
     with raises(TypeError):
         assemble(s)
+
 
 def test_origin_address_lies_within_existing_code_fragment():
     asm = AsmDsl()
@@ -39,12 +42,14 @@ def test_origin_address_lies_within_existing_code_fragment():
     with raises(ValueError):
         assemble(s)
 
+
 def test_fcb_operand_is_not_integers_raises_type_error():
     asm = AsmDsl()
     asm         (   FCB,    0            )
     s = statements(asm)
     with raises(TypeError):
         assemble(s)
+
 
 @given(items=lists(min_size=1, elements=one_of(integers(max_value=-1), integers(min_value=256))))
 def test_fcb_operand_integers_out_of_range_raises_value_error(items):
@@ -53,6 +58,7 @@ def test_fcb_operand_integers_out_of_range_raises_value_error(items):
     s = statements(asm)
     with raises(ValueError):
         assemble(s)
+
 
 def test_label_reuse_raises_runtime_error():
     asm = AsmDsl()
@@ -66,12 +72,14 @@ def test_label_reuse_raises_runtime_error():
     with raises(RuntimeError):
         assemble(s)
 
+
 def test_incorrect_index_register_raises_value_error():
     asm = AsmDsl()
     asm         (   LDA,    {B:A},      "GET SQUARE OF DATA"        )
     s = statements(asm)
     with raises(ValueError):
         assemble(s)
+
 
 def test_using_indexed_addressing_offset_register_with_index_register_raises_value_error():
     asm = AsmDsl()
@@ -80,12 +88,14 @@ def test_using_indexed_addressing_offset_register_with_index_register_raises_val
     with raises(ValueError):
         assemble(s)
 
+
 def test_using_auto_post_increment_with_register_non_index_register_raises_value_error():
     asm = AsmDsl()
     asm         (   LDA,    {0:A+1},      "GET SQUARE OF DATA"        )
     s = statements(asm)
     with raises(ValueError):
         assemble(s)
+
 
 def test_leventhal_4_1__8_bit_data_transfer():
     asm = AsmDsl()
@@ -98,6 +108,7 @@ def test_leventhal_4_1__8_bit_data_transfer():
         '96 40'
         '97 41'
         '3F')
+
 
 def test_leventhal_4_2__8_bit_addition():
     asm = AsmDsl()
@@ -113,6 +124,7 @@ def test_leventhal_4_2__8_bit_addition():
         '97 42'
         '3F')
 
+
 def test_leventhal_4_3__shift_left_1_bit():
     asm = AsmDsl()
     asm     (   LDB,    {0x40},     "GET DATA"                  )
@@ -126,6 +138,7 @@ def test_leventhal_4_3__shift_left_1_bit():
         '58'
         'D7 41'
         '3F')
+
 
 def test_leventhal_4_4__8_bit_addition():
     asm = AsmDsl()
@@ -141,6 +154,7 @@ def test_leventhal_4_4__8_bit_addition():
         '97 41'
         '3F')
 
+
 def test_leventhal_4_5__clear_a_memory_location():
     asm = AsmDsl()
     asm     (   CLR,    {0x40},     "CLEAR MEMORY LOCATION 0040")
@@ -150,6 +164,7 @@ def test_leventhal_4_5__clear_a_memory_location():
     assert code[0] == bytes.fromhex(
         '0F 40'
         '3F')
+
 
 def test_leventhal_4_6__byte_disassembly():
     asm = AsmDsl()
@@ -177,6 +192,7 @@ def test_leventhal_4_6__byte_disassembly():
         '97 41'
         '3F')
 
+
 def test_leventhal_4_7__find_larger_of_two_numbers():
     asm = AsmDsl()
     asm        (   LDA,    {0x40},     "GET FIRST OPERAND"         )
@@ -195,6 +211,7 @@ def test_leventhal_4_7__find_larger_of_two_numbers():
         '97 42'
         '3F')
 
+
 def test_levethal_4_8__sixteen_bit_addition():
     asm = AsmDsl()
     asm         (   LDD,    {0x40},     "GET FIRST 16-BIT NUMBER"   )
@@ -208,6 +225,7 @@ def test_levethal_4_8__sixteen_bit_addition():
         'D3 42'
         'DD 44'
         '3F')
+
 
 def test_levethal_4_9__table_of_squares():
     asm = AsmDsl()
@@ -231,6 +249,7 @@ def test_levethal_4_9__table_of_squares():
         '00 01 04 09 10 19 24 31'
     )
 
+
 def test_levethal_4_9_modified__table_of_squares():
     asm = AsmDsl()
     asm         (   LDB,    {0x41},     "GET DATA"                  )
@@ -253,6 +272,7 @@ def test_levethal_4_9_modified__table_of_squares():
         '00 01 04 09 10 19 24 31'
     )
 
+
 def test_levethal_4_10_ones_complement():
     asm = AsmDsl()
     asm         (   LDD,    {0x40},     "GET 16-BIT NUMBER"             )
@@ -268,6 +288,7 @@ def test_levethal_4_10_ones_complement():
         '53'
         'DD 42'
         '3F')
+
 
 def test_levethal_5_1a_sum_of_data():
     asm = AsmDsl()
@@ -291,6 +312,7 @@ def test_levethal_5_1a_sum_of_data():
         '97 40'
         '3F')
 
+
 def test_levethal_5_1b_sum_of_data():
     asm = AsmDsl()
     asm         (   CLRA,               "SUM = ZERO"                )
@@ -312,6 +334,7 @@ def test_levethal_5_1b_sum_of_data():
         '26 FB'
         '97 40'
         '3F')
+
 
 def test_levethal_5_2__16_bit_sum_of_data():
     asm = AsmDsl()
@@ -336,6 +359,7 @@ def test_levethal_5_2__16_bit_sum_of_data():
         '26 F8'
         'DD 40'
         '3F')
+
 
 def test_levethal_5_2__16_bit_sum_of_data_long_offset():
     asm = AsmDsl()
@@ -363,6 +387,7 @@ def test_levethal_5_2__16_bit_sum_of_data_long_offset():
         'DD 40'
         '3F')
 
+
 def test_levethal_5_3__number_of_negative_elements():
     asm = AsmDsl()
     asm         (   LDX,    0x42,       "POINT TO FIRST NUMBER"         )
@@ -386,6 +411,7 @@ def test_levethal_5_3__number_of_negative_elements():
         '26 F7'
         'D7 40'
         '3F')
+
 
 def test_leventhal_5_4__maximum_value():
     asm = AsmDsl()
@@ -413,11 +439,78 @@ def test_leventhal_5_4__maximum_value():
         '97 40'
         '3F')
 
+
 INDEX_REGISTER_CODES = {
     X: 0b00000000,
     Y: 0b00100000,
     U: 0b01000000,
     S: 0b01100000}
+
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_accumulator_A_offset(index_register):
+    asm = AsmDsl()
+    asm         (   LDB,    {A:index_register},     "ACCUMULATOR A OFFSET FROM INDEX REGISTER"   )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes(
+        (0xE6,
+         0b10000110  | INDEX_REGISTER_CODES[index_register]))
+
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_accumulator_B_offset(index_register):
+    asm = AsmDsl()
+    asm         (   LDA,    {B:index_register},     "ACCUMULATOR B OFFSET FROM INDEX REGISTER"   )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes(
+        (0xA6,
+         0b10000101  | INDEX_REGISTER_CODES[index_register]))
+
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_accumulator_D_offset(index_register):
+    asm = AsmDsl()
+    asm         (   LDA,    {D:index_register},     "ACCUMULATOR D OFFSET FROM INDEX REGISTER"   )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes(
+        (0xA6,
+         0b10001011  | INDEX_REGISTER_CODES[index_register]))
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_accumulator_E_offset(index_register):
+    asm = AsmDsl()
+    asm         (   LDA,    {E:index_register},     "ACCUMULATOR E OFFSET FROM INDEX REGISTER"   )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes(
+        (0xA6,
+         0b10000111  | INDEX_REGISTER_CODES[index_register]))
+
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_accumulator_F_offset(index_register):
+    asm = AsmDsl()
+    asm         (   LDA,    {F:index_register},     "ACCUMULATOR F OFFSET FROM INDEX REGISTER"   )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes(
+        (0xA6,
+         0b10001010  | INDEX_REGISTER_CODES[index_register]))
+
+
+@given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
+def test_index_with_accumulator_W_offset(index_register):
+    asm = AsmDsl()
+    asm         (   LDA,    {W:index_register},     "ACCUMULATOR W OFFSET FROM INDEX REGISTER"   )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes(
+        (0xA6,
+         0b10001110  | INDEX_REGISTER_CODES[index_register]))
+
 
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)))
 def test_index_with_zero_offset(index_register):
@@ -428,6 +521,7 @@ def test_index_with_zero_offset(index_register):
     assert code[0] == bytes(
         (0xA6,
          0b10000100 | INDEX_REGISTER_CODES[index_register]))
+
 
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=integers(min_value=-16, max_value=+15))
@@ -440,6 +534,7 @@ def test_index_with_five_bit_offset(index_register, offset):
     assert code[0] == bytes(
         (0xA6,
          INDEX_REGISTER_CODES[index_register] | twos_complement(offset, 5)))
+
 
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(integers(min_value=-128, max_value=-17),
@@ -454,6 +549,7 @@ def test_index_with_eight_bit_offset(index_register, offset):
         (0xA6,
          0b10001000 | INDEX_REGISTER_CODES[index_register],
          twos_complement(offset, 8)))
+
 
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(integers(min_value=-32768, max_value=-129),
@@ -470,6 +566,7 @@ def test_index_with_sixteen_bit_offset(offset, index_register):
         + twos_complement(offset, 16).to_bytes(
         length=2, byteorder='big', signed=False))
 
+
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(integers(max_value=-32769),
                      integers(min_value=+32768)))
@@ -479,6 +576,7 @@ def test_index_with_illegal_offset(offset, index_register):
 
     with raises(ValueError):
         asm(   LDA,    {offset:index_register},  "OUT-OF-RANGE OFFSET FROM X REGISTER"   )
+
 
 def test_leventhal_6_1a__length_of_a_string_of_characters():
     asm = AsmDsl()
@@ -505,6 +603,7 @@ def test_leventhal_6_1a__length_of_a_string_of_characters():
         '20 F9'
         'D7 40'
         '3F')
+
 
 def test_leventhal_6_1b__length_of_a_string_of_characters():
     asm = AsmDsl()
