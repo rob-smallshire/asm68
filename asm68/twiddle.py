@@ -7,7 +7,7 @@ def twos_complement(n, num_bits):
         raise ValueError("Cannot represent {} in two's complement in {} bits".format(n, num_bits))
 
     if n < 0:
-        return n + (1 << num_bits)
+        return n % (1 << num_bits)
     return n
 
 
