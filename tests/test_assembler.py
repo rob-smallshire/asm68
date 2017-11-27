@@ -1,5 +1,5 @@
 import pytest
-from hypothesis import given, assume
+from hypothesis import given, assume, example
 from hypothesis.strategies import lists, one_of, integers, sampled_from
 from pytest import raises, skip
 
@@ -525,6 +525,8 @@ def test_index_with_zero_offset(index_register):
 
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=integers(min_value=-16, max_value=+15))
+@example(index_register=X, offset=-16)
+@example(index_register=X, offset=+15)
 def test_index_with_five_bit_offset(index_register, offset):
     assume(offset != 0)
     asm = AsmDsl()
@@ -539,8 +541,11 @@ def test_index_with_five_bit_offset(index_register, offset):
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(integers(min_value=-128, max_value=-17),
                      integers(min_value=+16, max_value=+127)))
+@example(index_register=X, offset=-128)
+@example(index_register=X, offset=-17)
+@example(index_register=X, offset=+16)
+@example(index_register=X, offset=+127)
 def test_index_with_eight_bit_offset(index_register, offset):
-    assume(offset != 0)
     asm = AsmDsl()
     asm(   LDA,    {offset:index_register},  "8-BIT OFFSET FROM INDEX REGISTER"   )
 
@@ -554,8 +559,11 @@ def test_index_with_eight_bit_offset(index_register, offset):
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(integers(min_value=-32768, max_value=-129),
                      integers(min_value=+128, max_value=+32767)))
+@example(index_register=X, offset=-32768)
+@example(index_register=X, offset=-129)
+@example(index_register=X, offset=+128)
+@example(index_register=X, offset=+32767)
 def test_index_with_sixteen_bit_offset(offset, index_register):
-    assume(offset != 0)
     asm = AsmDsl()
     asm(   LDA,    {offset:index_register},  "16-BIT OFFSET FROM INDEX REGISTER"   )
 
@@ -570,6 +578,8 @@ def test_index_with_sixteen_bit_offset(offset, index_register):
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        offset=one_of(integers(max_value=-32769),
                      integers(min_value=+32768)))
+@example(index_register=X, offset=-32769)
+@example(index_register=X, offset=+32768)
 def test_index_with_illegal_offset(offset, index_register):
     assume(offset != 0)
     asm = AsmDsl()
