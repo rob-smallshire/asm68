@@ -224,7 +224,7 @@ def test_indexed_values(base, offset):
 
 @given(index_register=sampled_from(sorted(INDEX_REGISTERS)),
        delta=one_of(just(-2), just(-1), just(+1), just(+2)),
-       offset=integers())
+       offset=integers(min_value=-32768, max_value=+32767))
 def test_indexed_autoincrement_with_non_zero_offset_raises_value_error(index_register, delta, offset):
     assume(offset != 0)
     with raises(ValueError):
