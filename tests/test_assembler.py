@@ -56,7 +56,7 @@ def test_fcb_operand_integers_out_of_range_raises_value_error(items):
     asm = AsmDsl()
     asm         (   FCB,    tuple(items)            )
     s = statements(asm)
-    with raises(ValueError):
+    with raises(ValueError, match=r'Value -?\d+ at index \d+ not in range\(0, 256\)'):
         assemble(s)
 
 

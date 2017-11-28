@@ -4,7 +4,8 @@ from pytest import raises
 
 from asm68.label import Label
 from asm68.statement import Statement
-from tests.predicates import check_balanced, is_valid_variable_name
+from tests.predicates import check_balanced
+from util import is_valid_variable_name
 from tests.test_label import label_names
 from tests.test_mnemonics import mnemonics
 

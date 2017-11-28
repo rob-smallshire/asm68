@@ -120,7 +120,7 @@ def _(statement, asm):
     except ValueError as e:
         g = ((i, v) for i, v in enumerate(operand) if not v in range(0, 256))
         i, v = next(islice(g, 1))
-        raise ValueError("byte {} at index {} not in range(0, 256)".format(v, i)) from e
+        raise ValueError("Value {} at index {} not in range(0, 256)".format(v, i)) from e
     asm._extend(b)
 
 

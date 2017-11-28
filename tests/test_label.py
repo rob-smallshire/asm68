@@ -3,7 +3,9 @@ from hypothesis.strategies import from_regex, composite, text
 from pytest import raises
 
 from asm68.label import Label
-from tests.predicates import is_valid_variable_name, check_balanced
+from tests.predicates import check_balanced
+from util import is_valid_variable_name
+
 
 @composite
 def label_names(draw):

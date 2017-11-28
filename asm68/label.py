@@ -1,5 +1,5 @@
 from asm68.addrmodecodes import REL8, REL16, IMM
-from tests.predicates import is_valid_variable_name
+from asm68.util import is_valid_variable_name
 
 
 class Label:
