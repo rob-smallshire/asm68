@@ -5,10 +5,7 @@ def twos_complement(n, num_bits):
     higher = (1 << (num_bits - 1)) - 1
     if not (lower <= n <= higher):
         raise ValueError("Cannot represent {} in two's complement in {} bits".format(n, num_bits))
-
-    if n < 0:
-        return n % (1 << num_bits)
-    return n
+    return n % (1 << num_bits)
 
 
 def hi(b):
