@@ -6,7 +6,7 @@ exclude-modules:
 
 test-runner:
   name: pytest
-  args: tests
+  args: --hypothesis-seed=122806734047141953639645680954557793359 tests
 
 execution-engine:
   name: local
