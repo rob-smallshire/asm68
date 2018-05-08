@@ -6,7 +6,7 @@ exclude-modules:
 
 test-runner:
   name: pytest
-  args: --hypothesis-seed=122806734047141953639645680954557793359 tests
+  args: tests
 
 execution-engine:
-  name: local
+  name: celery3
