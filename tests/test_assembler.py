@@ -72,6 +72,19 @@ def test_label_reuse_raises_runtime_error():
     with raises(RuntimeError):
         assemble(s)
 
+def test_label_reuse_raises_runtime_error_multiple_segments_created_in_reverse_address_order():
+    asm = AsmDsl()
+    asm        (   LDA,    {0x40},     "GET FIRST OPERAND"         )
+    asm        (   CMPA,   {0x41},     "IS SECOND OPERAND LARGER?" )
+    asm        (   BHS,    asm.stres                               )
+    asm        (   LDA,    {0x41},     "YES,GET SECOND OPERAND"    )
+    asm        (   ORG,    0x50                                    )
+    asm .stres (   STA,    {0x42},     "STORE LARGER OPERAND"      )
+    asm        (   ORG,    0x30                                    )
+    asm .stres (   SWI                                             )
+    s = statements(asm)
+    with raises(RuntimeError):
+        assemble(s)
 
 def test_incorrect_index_register_raises_value_error():
     asm = AsmDsl()
@@ -625,7 +638,7 @@ def test_leventhal_6_1b__length_of_a_string_of_characters():
     asm         (   CMPA,   {0:X+1},    "IS NEXT CHARACTER "
                                                   "A CARRIAGE RETURN?"  )
     asm         (   BNE,    asm.CHKCR,   "NO, KEEP CHECKING"            )
-    asm  .DONE  (   STB,    {0x40},     "YES, SAVE STRING LENGTH"       )
+    asm  .DONE  (   STB,    {0x40},      "YES, SAVE STRING LENGTH"      )
     asm         (   SWI                                                 )
 
     code = assemble(statements(asm))
