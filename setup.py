@@ -36,11 +36,16 @@ INSTALL_REQUIRES = [
     'exit_codes',
 ]
 
+TESTS_REQUIRE = [
+    'pytest',
+    'hypothesis',
+]
+
 setup(
     name='asm68',
+    python_requires='>=3.6',
     version=read_version()[0],
     packages=find_packages(),
-
     author='Robert Smallshire',
     author_email='robert@smallshire.org.uk',
     description='6809/6309 assembler as an internal Python Domain Specific Language',
@@ -66,8 +71,10 @@ setup(
     # dependencies). You can install these using the following syntax,
     # for example:
     # $ pip install -e .[dev,test]
+    setup_requires=['pytest-runner'],
+    tests_require=TESTS_REQUIRE,
     extras_require={
-        'test': ['hypothesis', 'pytest'],
+        'test': TESTS_REQUIRE,
         'docs': ['sphinx', 'sphinx_rtd_theme'],
     },
     entry_points={
