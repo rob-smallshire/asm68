@@ -2,9 +2,9 @@ from asm68.asmdsl import AsmDsl
 from asm68.mnemonics import (LDB, LDX, LDA, INCB, CMPA, BNE, STB, SWI)
 from asm68.registers import X
 
-hjhdjahdjhsa
 
 asm = AsmDsl()
+
 asm         (   LDB,    0xFF,        "STRING LENGTH = -1"            )
 asm         (   LDX,    0x41,        "POINT TO START OF STRING"      )
 asm         (   LDA,    0x0D,        "GET ASCII CARRIAGE RETURN "
