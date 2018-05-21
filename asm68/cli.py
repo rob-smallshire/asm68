@@ -73,3 +73,7 @@ def main(argv=None):
         print("{:04X}: {}".format(address, hex_assembly))
         print()
     return ExitCode.OK
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
