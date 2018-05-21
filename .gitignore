@@ -102,3 +102,8 @@ ENV/
 *.iml
 out
 gen
+
+# Ignore Cosmic Ray output
+celeryconfig.py
+*.html
+*.json
