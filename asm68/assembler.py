@@ -5,7 +5,7 @@ from itertools import islice
 from asm68.addrmodecodes import REL8, REL16, IMM
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
 from asm68.util import single
-from asm68.directives import Org, Fcb
+from asm68.directives import Org, Fcb, Fdb
 from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES, Integral
@@ -17,6 +17,7 @@ def assemble(statements, origin=0):
     asm = Assembler(origin)
     asm.assemble(statements)
     return asm.object_code()
+
 
 class Assembler:
 
@@ -120,9 +121,22 @@ def _(statement, asm):
     except ValueError as e:
         g = ((i, v) for i, v in enumerate(operand) if not v in range(0, 256))
         i, v = next(islice(g, 1))
-        raise ValueError("Value {} at index {} not in range(0, 256)".format(v, i)) from e
+        raise ValueError("FCB value {} at index {} not in range(0, 256)".format(v, i)) from e
     asm._extend(b)
 
+
+@assemble_statement.register(Fdb)
+def _(statement, asm):
+    operand = statement.operand
+    if not isinstance(operand, Integers):
+        raise TypeError("FDB value must be integers")
+    b = bytearray()
+    for i, v in enumerate(operand):
+        if v not in range(0, 65536):
+            raise ValueError("FDB value {} at index {} not in range(0, 65536)")
+        b.append((v >> 8) & 0xff)
+        b.append(v & 0xff)
+    asm._extend(b)
 
 @singledispatch
 def assemble_operand(operand, opcode_key, asm, statement):

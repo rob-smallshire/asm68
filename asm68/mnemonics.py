@@ -136,3 +136,4 @@ TST = Mnemonic('TST')
 
 ORG = Mnemonic('ORG')
 FCB = Mnemonic('FCB')
+FDB = Mnemonic('FDB')
