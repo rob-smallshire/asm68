@@ -2,7 +2,7 @@ from collections import defaultdict
 from functools import singledispatch
 from itertools import islice
 
-from asm68.addrmodecodes import REL8, REL16, IMM
+from asm68.addrmodecodes import REL8, REL16, IMM, EXT
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
 from asm68.util import single
 from asm68.directives import Org, Fcb, Fdb
@@ -177,14 +177,14 @@ def _(operand, opcode_key, asm, statement):
             elif opcode_key == REL16:
                 return (hi(unsigned_offset), lo(unsigned_offset))
         else:
-            assert opcode_key is IMM
+            assert opcode_key in {IMM, EXT}
             return (hi(target_address), lo(target_address))
     else:
         asm._more_passes_required = True
         if opcode_key in branch_operand_widths:
             return (0, ) * branch_operand_widths[opcode_key]
         else:
-            assert opcode_key is IMM
+            assert opcode_key in {IMM, EXT}
             return (0, 0)
 
 

@@ -1,10 +1,15 @@
-from asm68.addrmodecodes import REL8, REL16, IMM
+from asm68.addrmodecodes import REL8, REL16, IMM, EXT
 from asm68.util import is_valid_variable_name
 
 
 class Label:
 
-    codes = {REL8, REL16, IMM}
+    codes = {
+        REL8,
+        REL16,
+        IMM,
+        EXT,   # For use with JMP and JSR, etc.
+    }
 
     def __init__(self, name):
         if (not is_valid_variable_name(name)) or name.startswith('_'):
