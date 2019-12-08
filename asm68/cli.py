@@ -71,7 +71,7 @@ def main(argv=None):
     for address, code in code_blocks.items():
         hex_assembly = ' '.join(format(b, '02X') for b in code)
         print("{:04X}: {}".format(address, hex_assembly))
-        print()
+        print("length: {} bytes".format(len(code)))
     return ExitCode.OK
 
 
