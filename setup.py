@@ -32,7 +32,7 @@ LONG_DESCRIPTION = read(local_file('README.rst'), mode='rt')
 
 INSTALL_REQUIRES = [
     'frozendict',
-    'docopt',
+    'click',
     'exit_codes',
 ]
 

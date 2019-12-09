@@ -17,3 +17,11 @@ def single(iterable):
 
 def is_valid_variable_name(name):
     return name.isidentifier() and not iskeyword(name)
+
+
+def take_after(predicate, iterable):
+    found = False
+    for item in iterable:
+        found = found or predicate(item)
+        if found:
+            yield item
