@@ -39,10 +39,10 @@ def cli(verbosity):
 @click.argument("source", type=click.Path(exists=True, path_type=str))
 @click.option("--output", type=click.File('wb'))
 @click.option("--format", type=click.Choice(["hex", "srec", "bin"]), help="Output file format", default="bin")
-@click.option("--multiplicity", type=int, help="Number of copies in the binary output file", default=1)
-def asm(source, output, format, multiplicity):
+@click.option("--repeat", type=int, help="Number of copies in the binary output file", default=1)
+def asm(source, output, format, repeat):
     try:
-        api.asm(source, output, output_format=format, multiplicity=multiplicity)
+        api.asm(source, output, output_format=format, repeat=repeat)
     except FileNotFoundError as e:
         print(e, file=sys.stderr)
         return ExitCode.OS_FILE

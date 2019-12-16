@@ -7,7 +7,7 @@ from assembler import assemble
 
 logger = logging.getLogger(__name__)
 
-def asm(source_filepath, output_file, output_format, multiplicity):
+def asm(source_filepath, output_file, output_format, repeat):
     """
     Args:
         source_filepath: A string path to the source file.
@@ -16,7 +16,7 @@ def asm(source_filepath, output_file, output_format, multiplicity):
     
         output_format: "bin", "hex" or "srec"
         
-        multiplicity: The number of times binary data will be copied into
+        repeat: The number of times binary data will be copied into
             the output file. Useful for 'doubling-up' binary images for
             putting, say, a 16 K image into a 32 K EPROM.
     
@@ -37,7 +37,7 @@ def asm(source_filepath, output_file, output_format, multiplicity):
         logger.debug("{:04X}: {}".format(address, hex_assembly))
         logger.info("code length: {} bytes".format(len(code)))
         
-    export_code_blocks(output_file, code_blocks, output_format, multiplicity)    
+    export_code_blocks(output_file, code_blocks, output_format, repeat)    
 
 
 class ModuleLoadError(Exception):
