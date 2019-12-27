@@ -43,7 +43,7 @@ def asm(source_filepath, output_file, output_format, repeat):
 class ModuleLoadError(Exception):
     
     def __init__(self, module_filepath, exception):
-        super.__init__(f"Could not load module: {str(module_filepath)}")
+        super().__init__(f"Could not load module: {str(module_filepath)}")
         self.filepath = module_filepath
         self.exception = exception
 
