@@ -114,3 +114,13 @@ OPCODES = frozendict({
     TSTB:  { INH: 0x5D,                                                                     },
     TST:   {                           DIR: 0x0D,   IDX: 0x6D,   EXT: 0x7D,                 },
 })
+
+
+# Used to interpret the unusual addressing modes of these instructions.
+# From the programmers reference by Darren Atkinson:
+# 
+#   "Unlike most other instructions which use the
+#    Direct, Indexed and Extended addressing modes, the operand value used by the JMP instruction is
+#    the Effective Address itself, rather than the memory contents stored at that address (unless
+#    Indirect Indexing is used)."
+JUMPS = {JMP, JSR}

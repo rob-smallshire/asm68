@@ -3,6 +3,7 @@ from numbers import Integral
 
 from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8, REL16
 from asm68.label import Label
+from opcodes import JUMPS
 
 
 class Inherent:
@@ -264,3 +265,15 @@ class Integers:
     def __getitem__(self, index):
         return self._items[index]
 
+
+def make_operand_addressing_modes(operand, mnemonic):
+    """Jumps have unusual addressing modes, where the official addressing mode
+    behaves like another mode. For example, extended addressing mode behaves like immediate mode.
+    """
+    if mnemonic in JUMPS:
+        operating_addressing_modes = set(operand.codes)
+        operating_addressing_modes.discard(IMM)
+        operating_addressing_modes.add(EXT)
+    else:
+        operating_addressing_modes = set(operand.codes)
+    return operating_addressing_modes

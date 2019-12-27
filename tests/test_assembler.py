@@ -56,7 +56,7 @@ def test_fcb_operand_integers_out_of_range_raises_value_error(items):
     asm = AsmDsl()
     asm         (   FCB,    tuple(items)            )
     s = statements(asm)
-    with raises(ValueError, match=r'Value -?\d+ at index \d+ not in range\(0, 256\)'):
+    with raises(ValueError, match=r'FCB value -?\d+ at index \d+ not in range\(0, 256\)'):
         assemble(s)
 
 
@@ -266,7 +266,7 @@ def test_levethal_4_9__table_of_squares():
 def test_levethal_4_9_modified__table_of_squares():
     asm = AsmDsl()
     asm         (   LDB,    {0x41},     "GET DATA"                  )
-    asm         (   LDX,    asm.SQTAB,  "GET BASE ADDRESS"          )
+    asm         (   LDX,    asm.SQTAB,  "GET BASE ADDRESS"          )  # Immediate addressing
     asm         (   LDA,    {B:X},      "GET SQUARE OF DATA"        )
     asm         (   STA,    {0x42},     "STORE SQUARE"              )
     asm         (   SWI                                             )

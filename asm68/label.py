@@ -4,17 +4,20 @@ from asm68.util import is_valid_variable_name
 
 class Label:
 
-    codes = {
+    CODES = frozenset({
         REL8,
         REL16,
         IMM,
-        EXT,   # For use with JMP and JSR, etc.
-    }
+    })
 
     def __init__(self, name):
         if (not is_valid_variable_name(name)) or name.startswith('_'):
             raise ValueError("{!r} is not a valid label name".format(name))
         self._name = name
+
+    @property
+    def codes(self):
+        return self.CODES
 
     @property
     def name(self):

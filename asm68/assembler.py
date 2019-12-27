@@ -97,12 +97,16 @@ def assemble_statement(statement, asm):
 @assemble_statement.register(Instruction)
 def _(statement, asm):
     operand = statement.operand
+
+    operating_addressing_modes = make_operand_addressing_modes(operand, statement.mnemonic)
+        
     opcodes = OPCODES[statement.mnemonic]
-    opcode_key = single(operand.codes & opcodes.keys())
+    opcode_key = single(operating_addressing_modes & opcodes.keys())
     opcode = opcodes[opcode_key]
     asm._opcode_bytes = (opcode,) if opcode <= 0xFF else (hi(opcode), lo(opcode))
     operand_bytes = assemble_operand(operand, opcode_key, asm, statement)
     asm._extend(asm._opcode_bytes + operand_bytes)
+
 
 @assemble_statement.register(Org)
 def _(statement, asm):
