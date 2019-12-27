@@ -650,4 +650,24 @@ def test_leventhal_6_1b__length_of_a_string_of_characters():
         'A1 80'
         '26 FB'
         'D7 40'
-        '3F')
+        '3F'
+    )
+
+
+def test_program_counter_label():
+    asm = AsmDsl()
+    asm     (   LDX, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO X"  )
+    asm     (   LDY, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO Y"  )
+    asm     (   LDS, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO S"  )
+    asm     (   LDU, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO U"  )
+    asm     (   SWI                                                         )
+    
+    code = assemble((statements(asm)))
+    assert code[0] == bytes.fromhex(
+        '8E 00 00'
+        '108E 00 03'
+        '10CE 00 07'
+        'CE 00 0b'
+        '3F'
+    )
+    

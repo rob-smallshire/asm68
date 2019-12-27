@@ -10,6 +10,8 @@ from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
 from asm68.registers import Register, AutoIncrementedRegister
 from asm68.util import single
 
+PROGRAM_COUNTER_LABEL_NAME = "pc"
+
 
 class AsmDsl:
 
@@ -42,6 +44,10 @@ class AsmDsl:
         statement_node = MNEMONIC_TO_STATEMENT[mnemonic](operand_node, comment, label)
         self._statements.append(statement_node)
 
+    @property
+    def pc(self):
+        return ProgramCounterLabel(self)
+
     def __getattr__(self, name):
         return Labeller(self, name=name)
 
@@ -57,6 +63,15 @@ class Labeller(Label):
         if asm is None:
             raise RuntimeError("AsmDsl instance no longer available.")
         return asm(*args, label=self.name, **kwargs)
+
+
+class ProgramCounterLabel(Label):
+    """A special label which points to the program counter."""
+    
+    def __init__(self, asm):
+        super().__init__(PROGRAM_COUNTER_LABEL_NAME)
+        self._asm = weakref.ref(asm)
+        
 
 def statements(asm):
     return tuple(asm._statements)

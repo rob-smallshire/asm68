@@ -2,6 +2,7 @@ from collections import defaultdict
 from functools import singledispatch
 from itertools import islice
 
+from addrmodes import make_operand_addressing_modes
 from asm68.addrmodecodes import REL8, REL16, IMM, EXT
 from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
 from asm68.util import single
@@ -11,6 +12,7 @@ from asm68.label import Label
 from asm68.opcodes import OPCODES, Integral
 from asm68.registers import X, Y, U, S, A, B, D, E, F, W, AutoIncrementedRegister
 from asm68.twiddle import twos_complement, hi, lo
+from asmdsl import PROGRAM_COUNTER_LABEL_NAME
 
 
 def assemble(statements, origin=0):
@@ -73,6 +75,7 @@ class Assembler:
             self._code.clear()
             self.origin = 0
             for statement in statements:
+                self._label_addresses[PROGRAM_COUNTER_LABEL_NAME] = self.pos
                 self._label_statement(statement, i)
                 assemble_statement(statement, self)
             i += 1
@@ -80,7 +83,7 @@ class Assembler:
     def _label_statement(self, statement, i):
         if statement.label is not None:
             if statement.label in self._label_addresses:
-                if self._label_addresses[statement.label] != self._pos:
+                if self._label_addresses[statement.label] != self.pos:
                     # Different address used. What we do here depends on
                     # which compiler pass this is.
                     if i == 0:
@@ -88,7 +91,7 @@ class Assembler:
                                            .format(statement.label))
                     # else:
                     #    print("More passes required.")
-            self._label_addresses[statement.label] = self._pos
+            self._label_addresses[statement.label] = self.pos
 
 @singledispatch
 def assemble_statement(statement, asm):
