@@ -119,7 +119,7 @@ def _(statement, asm):
     operand = statement.operand
 
     operating_addressing_modes = set(operand.codes)
-        
+
     opcodes = OPCODES[statement.mnemonic]
     opcode_key = single(operating_addressing_modes & opcodes.keys())
     opcode = opcodes[opcode_key]
@@ -162,8 +162,18 @@ def _(statement, asm):
         b.append(v & 0xff)
     asm._extend(b)
 
+
 @assemble_statement.register(Call)
 def _(statement, asm):
+    """Invoke an assembler macro for expansion inline.
+
+    The operand of the call directive must be a a Python callable to which
+    the assember instance will be passed. The macro function can return an
+    iterable series of statements, in which case they will be assembled,
+    a single statement to be assembled. Macros which return None can be useful
+    for the side-effects. For example, the built-in function 'print' can be
+    CALLed to print the current assembler state.
+    """
     operand = statement.operand
     if not callable(operand):
         raise TypeError("CALL value must be a Python callable")
@@ -171,8 +181,7 @@ def _(statement, asm):
     if isinstance(result, Iterable):
         for stmt in result:
             assemble_statement(stmt, asm)
-    elif result is not None:
-        assemble_statement(result, asm)
+
 
 @singledispatch
 def assemble_operand(operand, opcode_key, asm, statement):
