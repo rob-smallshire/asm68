@@ -1,4 +1,5 @@
 import weakref
+from collections import Callable
 from collections.abc import Set
 from functools import singledispatch
 from numbers import Integral
@@ -9,6 +10,7 @@ from asm68.label import Label
 from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
 from asm68.registers import Register, AutoIncrementedRegister
 from asm68.util import single
+from integers import U8, U16, U32, I8, I16, I32
 
 PROGRAM_COUNTER_LABEL_NAME = "pc"
 
@@ -20,6 +22,10 @@ class AsmDsl:
         self._label_statement_index = {}
 
     def __call__(self, mnemonic, *args, label=None):
+        statement_node = self.statement(mnemonic, *args, label=label)
+        self._statements.append(statement_node)
+
+    def statement(self, mnemonic, *args, label=None):
         operand = None
         comment = ""
         if len(args) == 0:
@@ -33,16 +39,13 @@ class AsmDsl:
             operand, comment = args
         else:
             raise TypeError("Unhandled number are assembler arguments")
-
         if label is not None:
             self._label_statement_index[label] = len(self._statements)
-
         operand_node = parse_operand(operand)
-
         if mnemonic not in MNEMONIC_TO_STATEMENT:
             raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
         statement_node = MNEMONIC_TO_STATEMENT[mnemonic](operand_node, comment, label)
-        self._statements.append(statement_node)
+        return statement_node
 
     @property
     def pc(self):
@@ -89,34 +92,71 @@ def _(operand):
     assert operand is None
     return Inherent()
 
+@parse_operand.register(Callable)
+def _(operand):
+    return operand
+
 @parse_operand.register(Integral)
 def _(operand):
+    """Parse an immediate operand.
+    
+    Immediate operands are simple values such as 0, 0x10, or 0b10101010, or an expression evaluating
+    to such a value, such as ord("A").
+    """
     return Immediate(operand)
 
 @parse_operand.register(bytes)
 def _(operand):
-    try:
-        byte = single(operand)
-    except ValueError as ve:
-        raise ValueError("Immediate8 string operand must contain an single ASCII character. Got {} in {!r}".format(len(operand), operand)) from ve
+    return Immediate(int.from_bytes(operand, byteorder="big", signed=False), len(operand))
 
-    return Immediate(byte)
+
+@parse_operand.register(U8)
+def _(operand):
+    return Immediate(operand.value, 1)
+
+
+@parse_operand.register(U16)
+def _(operand):
+    return Immediate(operand.value, 2)
+
+
+@parse_operand.register(U32)
+def _(operand):
+    return Immediate(operand.value, 4)
+
+
+@parse_operand.register(I8)
+def _(operand):
+    return Immediate(int.from_bytes(
+        operand.value.to_bytes(1, byteorder="big", signed=True),
+        byteorder="big",
+        signed=False
+    ), 1)
+
+
+@parse_operand.register(I16)
+def _(operand):
+    unsigned = operand.value.to_bytes(2, byteorder="big", signed=True)
+    return Immediate(int.from_bytes(
+        unsigned,
+        byteorder="big",
+        signed=False
+    ), 2)
+
+
+@parse_operand.register(I32)
+def _(operand):
+    return Immediate(int.from_bytes(
+        operand.value.to_bytes(4, byteorder="big", signed=True),
+        byteorder="big",
+        signed=False
+    ), 4)
+
 
 @parse_operand.register(Set)
 def _(operand):
     item = single(operand)
-    if isinstance(item, Label):
-        return ExtendedDirect(item)
-    elif isinstance(item, Integral):
-        if item < 0:
-            raise ValueError("Direct address {} is negative.".format(operand))
-        if item <= 0xFF:
-            return PageDirect(item)
-        if item <= 0xFFFF:
-            return ExtendedDirect(item)
-        raise ValueError("Direct address 0x{:X} out of range 0x0000-0xFFFF".format(item))
-    else:
-        raise TypeError("Expected integer address or label. Got {}".format(item))
+    return parse_direct_operand(item)
 
 @parse_operand.register(tuple)
 def _(operand):
@@ -163,3 +203,30 @@ def _(operand):
         raise ValueError("Indirect address 0x{:X} out of range 0x0000-0xFFFF".format(item))
     else:
         raise TypeError("Expected integer address or label. Got {}".format(item))
+
+@singledispatch
+def parse_direct_operand(item):
+    raise TypeError("Unrecognised direct operand type {!r}".format(item))
+
+@parse_direct_operand.register(Label)
+def _(item):
+    return ExtendedDirect(item)
+
+@parse_direct_operand.register(Integral)
+def _(item):
+    if item < 0:
+        raise ValueError("Direct address {} is negative.".format(item))
+    if item <= 0xFF:
+        return PageDirect(item)
+    if item <= 0xFFFF:
+        return ExtendedDirect(item)
+    raise ValueError("Direct address 0x{:X} out of range 0x0000-0xFFFF".format(item))
+
+@parse_direct_operand.register(U8)
+def _(item):
+    return PageDirect(item.value)
+
+@parse_direct_operand.register(U16)
+def _(item):
+    return ExtendedDirect(item.value)
+

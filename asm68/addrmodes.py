@@ -3,7 +3,9 @@ from numbers import Integral
 
 from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8, REL16
 from asm68.label import Label
-from opcodes import JUMPS
+from util import typename
+
+I = 0
 
 
 class Inherent:
@@ -26,23 +28,41 @@ class Immediate:
 
     codes = {IMM}
 
-    def __init__(self, value):
+    widths = {1, 2, 4}
+
+    def __init__(self, value, width=None):
+        if width is not None:
+            if width not in self.widths:
+                raise ValueError("{} width {!r} not in {!r}".format(typename(self), width, self.widths))
+            lower = 0
+            upper = 2 ** (width * 8)
+            if not (lower <= value < upper):
+                raise ValueError("{} value {!r} out of range {} to {} for {} byte width".format(typename(self), value,
+                                                                              lower, upper - 1, width))
         self._value = value
+        self._width = width
 
     @property
     def value(self):
         return self._value
+    
+    @property
+    def width(self):
+        return self._width
 
     def __repr__(self):
-        return "{}({!r})".format(self.__class__.__name__, self._value)
+        return "{}({!r}, {!r})".format(typename(self), self._value, self._width)
+
+    def _key(self):
+        return (self._width, self._value)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, self.__class__):
             return NotImplemented
-        return self._value == rhs._value
+        return self._key() == rhs._key()
 
     def __hash__(self):
-        return hash(self._value)
+        return hash(self._key())
 
 
 class Registers:
@@ -266,14 +286,3 @@ class Integers:
         return self._items[index]
 
 
-def make_operand_addressing_modes(operand, mnemonic):
-    """Jumps have unusual addressing modes, where the official addressing mode
-    behaves like another mode. For example, extended addressing mode behaves like immediate mode.
-    """
-    if mnemonic in JUMPS:
-        operating_addressing_modes = set(operand.codes)
-        operating_addressing_modes.discard(IMM)
-        operating_addressing_modes.add(EXT)
-    else:
-        operating_addressing_modes = set(operand.codes)
-    return operating_addressing_modes

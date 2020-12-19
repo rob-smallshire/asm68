@@ -1,12 +1,18 @@
-from collections import defaultdict
+from collections import defaultdict, Iterable
 from functools import singledispatch
 from itertools import islice
 
-from addrmodes import make_operand_addressing_modes
 from asm68.addrmodecodes import REL8, REL16, IMM, EXT
-from asm68.addrmodes import (PageDirect, Inherent, Immediate, Indexed, Integers)
+from asm68.addrmodes import (
+    PageDirect,
+    ExtendedDirect,
+    Inherent,
+    Immediate,
+    Indexed,
+    Integers
+)
 from asm68.util import single
-from asm68.directives import Org, Fcb, Fdb
+from asm68.directives import Org, Fcb, Fdb, Call
 from asm68.instructions import Instruction
 from asm68.label import Label
 from asm68.opcodes import OPCODES, Integral
@@ -29,6 +35,14 @@ class Assembler:
         self._code = defaultdict(list)  # A dictionary mapping addresses to code fragments represented as lists of bytes strings.
         self._label_addresses = {}  # Maps label names to items in _code
         self._more_passes_required = True
+        self._i = 0
+
+    def __str__(self):
+        lines = [
+            f"Origin: 0x{self.origin:04X}",
+            f"PC:     0x{self.pos:04X}",
+        ]
+        return "\n".join(lines)
 
     @property
     def pos(self):
@@ -69,24 +83,27 @@ class Assembler:
 
     def assemble(self, statements):
         # Do multi-pass assembly
-        i = 0
+        self._i = 0
         while self._more_passes_required:
             self._more_passes_required = False
             self._code.clear()
             self.origin = 0
             for statement in statements:
-                self._label_addresses[PROGRAM_COUNTER_LABEL_NAME] = self.pos
-                self._label_statement(statement, i)
-                assemble_statement(statement, self)
-            i += 1
+                self.assemble_statement(statement)
+            self._i += 1
 
-    def _label_statement(self, statement, i):
+    def assemble_statement(self, statement):
+        self._label_addresses[PROGRAM_COUNTER_LABEL_NAME] = self.pos
+        self._label_statement(statement)
+        assemble_statement(statement, self)
+
+    def _label_statement(self, statement):
         if statement.label is not None:
             if statement.label in self._label_addresses:
                 if self._label_addresses[statement.label] != self.pos:
                     # Different address used. What we do here depends on
                     # which compiler pass this is.
-                    if i == 0:
+                    if self._i == 0:
                         raise RuntimeError("Label {} already used previously."
                                            .format(statement.label))
                     # else:
@@ -101,7 +118,7 @@ def assemble_statement(statement, asm):
 def _(statement, asm):
     operand = statement.operand
 
-    operating_addressing_modes = make_operand_addressing_modes(operand, statement.mnemonic)
+    operating_addressing_modes = set(operand.codes)
         
     opcodes = OPCODES[statement.mnemonic]
     opcode_key = single(operating_addressing_modes & opcodes.keys())
@@ -165,6 +182,18 @@ def _(operand, opcode_key, asm, statement):
 def _(operand, opcode_key, asm, statement):
     return (operand.address, )
 
+@assemble_operand.register(ExtendedDirect)
+def _(operand, opcode_key, asm, statement):
+    if isinstance(operand.address, Label):
+        label = operand.address
+        if label.name in asm._label_addresses:
+            target_address = asm._label_addresses[label.name]
+            return (hi(target_address), lo(target_address))
+        else:
+            asm._more_passes_required = True
+            return (0, 0)
+    return (hi(operand.address), lo(operand.address))
+
 branch_operand_widths = {
     REL8: 1,
     REL16: 2
@@ -180,19 +209,22 @@ def _(operand, opcode_key, asm, statement):
             offset = target_address - asm.pos - len(asm._opcode_bytes) - operand_bytes_length
             unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
             if opcode_key == REL8:
-                return (unsigned_offset, )
+                result = (unsigned_offset, )
             elif opcode_key == REL16:
-                return (hi(unsigned_offset), lo(unsigned_offset))
+                result = (hi(unsigned_offset), lo(unsigned_offset))
+            else:
+                assert False, f"Unknown opcode key {opcode_key}"
         else:
             assert opcode_key in {IMM, EXT}
-            return (hi(target_address), lo(target_address))
+            result = (hi(target_address), lo(target_address))
     else:
         asm._more_passes_required = True
         if opcode_key in branch_operand_widths:
-            return (0, ) * branch_operand_widths[opcode_key]
+            result = (0, ) * branch_operand_widths[opcode_key]
         else:
             assert opcode_key in {IMM, EXT}
-            return (0, 0)
+            result = (0, 0)
+    return result
 
 
 

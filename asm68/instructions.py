@@ -1,5 +1,5 @@
 from asm68.mnemonics import *
-from asm68.opcodes import OPCODES, JUMPS, make_operand_addressing_modes
+from asm68.opcodes import OPCODES
 from asm68.registers import A, B, D, S, U, X, Y, CC
 from asm68.statement import Statement
 
@@ -7,7 +7,7 @@ from asm68.statement import Statement
 class Instruction(Statement):
 
     def __init__(self, operand, comment='', label=None):
-        addressing_modes = make_operand_addressing_modes(operand, self.mnemonic) 
+        addressing_modes = set(operand.codes) 
         if OPCODES[self.mnemonic].keys().isdisjoint(addressing_modes):
             raise TypeError("Invalid {} addressing mode for {}"
                 .format((type(operand).__name__).lower(), self.mnemonic))
