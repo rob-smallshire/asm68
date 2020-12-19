@@ -162,6 +162,18 @@ def _(statement, asm):
         b.append(v & 0xff)
     asm._extend(b)
 
+@assemble_statement.register(Call)
+def _(statement, asm):
+    operand = statement.operand
+    if not callable(operand):
+        raise TypeError("CALL value must be a Python callable")
+    result = operand(asm)
+    if isinstance(result, Iterable):
+        for stmt in result:
+            assemble_statement(stmt, asm)
+    elif result is not None:
+        assemble_statement(result, asm)
+
 @singledispatch
 def assemble_operand(operand, opcode_key, asm, statement):
     raise TypeError("Operand {} could not be assembled".format(operand))

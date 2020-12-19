@@ -137,5 +137,6 @@ TST = Mnemonic('TST')
 ORG = Mnemonic('ORG')
 FCB = Mnemonic('FCB')
 FDB = Mnemonic('FDB')
+CALL = Mnemonic('CALL')
 # TODO: Setdp
 

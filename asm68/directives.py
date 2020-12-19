@@ -1,4 +1,4 @@
-from asm68.mnemonics import (ORG, FCB, FDB)
+from asm68.mnemonics import (ORG, FCB, FDB, CALL)
 from asm68.statement import Statement
 
 
@@ -13,4 +13,7 @@ class Fcb(Directive):
     
 class Fdb(Directive):
     mnemonic = FDB
+    
+class Call(Directive):
+    mnemonic = CALL
 

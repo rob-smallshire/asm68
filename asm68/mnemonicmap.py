@@ -115,6 +115,7 @@ MNEMONIC_TO_STATEMENT = frozendict({
     ORG: Org,
     FCB: Fcb,
     FDB: Fdb,
+    CALL: Call,
 })
 from asm68.mnemonics import *
 
