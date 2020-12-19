@@ -10,6 +10,7 @@ from asm68.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, 
 from asm68.label import Label
 from asm68.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS, Mnemonic
 from asm68.registers import A, B, PC, U, Y, X, DP, CC
+from integers import U8, U16, U32, I8, I16, I32
 from tests.test_mnemonics import mnemonics
 
 
@@ -211,13 +212,13 @@ def test_negative_indirect_address_raises_value_error(address):
 
 @given(b=binary(min_size=1, max_size=1))
 def test_bytes_operand_gives_immediate_value(b):
-    assert parse_operand(b) == Immediate(b[0])
+    assert parse_operand(b) == Immediate(b[0], 1)
 
 def test_empty_bytes_operand_raises_value_error():
     with raises(ValueError):
         assert parse_operand(b'')
 
-@given(b=binary(min_size=2))
+@given(b=binary(min_size=3, max_size=3))
 def test_multi_bytes_operand_raises_value_error(b):
     with raises(ValueError):
         assert parse_operand(b)
@@ -247,3 +248,27 @@ def test_indirect_too_large_an_integer(address):
 def test_indirect_wrong_type_raises_type_error():
     with raises(TypeError):
         parse_indirect_operand({"a string"})
+        
+
+def test_u8_operand():
+    assert parse_operand(U8(42)) == Immediate(42, 1)
+    
+    
+def test_u16_operand():
+    assert parse_operand(U16(0x4567)) == Immediate(0x4567, 2)
+
+    
+def test_u32_operand():
+    assert parse_operand(U32(0x45671234)) == Immediate(0x45671234, 4)
+    
+    
+def test_i8_operand():
+    assert parse_operand(I8(-42)) == Immediate(214, 1)
+    
+    
+def test_i16_operand():
+    assert parse_operand(I16(-4567)) == Immediate(60969, 2)
+
+    
+def test_i32_operand():
+    assert parse_operand(I32(0x45671234)) == Immediate(0x45671234, 4)

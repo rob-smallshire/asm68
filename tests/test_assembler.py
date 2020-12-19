@@ -8,6 +8,7 @@ from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
 from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S, E, D, F, W
 from asm68.twiddle import twos_complement
+from integers import U8, U16
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():
@@ -604,8 +605,8 @@ def test_index_with_illegal_offset(offset, index_register):
 def test_leventhal_6_1a__length_of_a_string_of_characters():
     asm = AsmDsl()
     asm         (   CLRB,               "STRING LENGTH = ZERO"          )
-    asm         (   LDX,    0x41,       "POINT TO START OF STRING"      )
-    asm         (   LDA,    0x0D,       "GET ASCII CARRIAGE RETURN "
+    asm         (   LDX,    U16(0x41),  "POINT TO START OF STRING"      )
+    asm         (   LDA,    U8(0x0D),   "GET ASCII CARRIAGE RETURN "
                                              "(STRING TERMINATOR)"      )
     asm  .CHKCR (   CMPA,   {0:X+1},    "IS NEXT CHARACTER "
                                                   "A CARRIAGE RETURN?"  )
@@ -662,7 +663,7 @@ def test_program_counter_label():
     asm     (   LDU, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO U"  )
     asm     (   SWI                                                         )
     
-    code = assemble((statements(asm)))
+    code = assemble(statements(asm))
     assert code[0] == bytes.fromhex(
         '8E 00 00'
         '108E 00 03'
@@ -670,4 +671,41 @@ def test_program_counter_label():
         'CE 00 0b'
         '3F'
     )
+    
+    
+def test_jump_addressing_mode_label_extended():
+    asm = AsmDsl()
+    asm .BEGIN ( JMP, {asm.BEGIN}, "LOOP FOREVER" )
+    
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '7E 00 00'
+    )
+    
+    
+def test_jump_addressing_mode_extended():
+    asm = AsmDsl()
+    asm .BEGIN ( JMP, {U16(0xC000)}, "LOOP FOREVER" )
+    
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '7E C0 00'
+    )
+    
+    
+def test_jump_addressing_mode_direct():
+    asm = AsmDsl()
+    asm  ( JMP, {U8(0xC0)}, "Jump to an address on the direct page" )
+    
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '0E C0'
+    ) 
+    
+    
+def test_jump_addressing_mode_immediate_raises_error():
+    asm = AsmDsl()
+    
+    with raises(TypeError):
+        asm .BEGIN ( JMP, 0xC000, "ERROR!" )
     
