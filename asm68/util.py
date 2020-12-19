@@ -25,3 +25,7 @@ def take_after(predicate, iterable):
         found = found or predicate(item)
         if found:
             yield item
+            
+            
+def typename(obj):
+    return type(obj).__name__
