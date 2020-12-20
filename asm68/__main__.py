@@ -1,6 +1,7 @@
 import sys
 
-from .cli import main
+from .version import program_name
+from .cli import cli
 
-sys.exit(main(sys.argv[1:]))
+sys.exit(cli(prog_name=program_name))
 

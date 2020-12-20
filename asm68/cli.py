@@ -11,14 +11,13 @@ import sys
 from traceback import extract_tb, print_exception
 import logging
 
-from asm68.version import __version__
-
 import click
-
 from exit_codes import ExitCode
 
+from asm68.version import __version__, program_name
 from asm68 import api
-from util import take_after
+from asm68.util import take_after
+
 
 log_levels = tuple(logging._levelToName.values())
 
@@ -30,10 +29,16 @@ log_levels = tuple(logging._levelToName.values())
     help="The logging level to use.",
     type=click.Choice(log_levels, case_sensitive=True),
 )
-@click.version_option(version=__version__)
+
+
+@click.version_option(
+    version=__version__,
+    prog_name="asm68"
+)
 def cli(verbosity):
     logging_level = getattr(logging, verbosity)
     logging.basicConfig(level=logging_level)
+
 
 @cli.command(name="asm")
 @click.argument("source", type=click.Path(exists=True, path_type=str))
@@ -56,8 +61,9 @@ def asm(source, output, format, repeat):
         click.secho("Error in module to be assembled: {}".format(source), fg="red")
         print_exception(type(e), e, tb, limit=-num_truncated_tb_entries, file=sys.stderr, chain=False)
         sys.exit(ExitCode.DATA_ERR)
-        
+
     sys.exit(ExitCode.OK)
 
+
 if __name__ == "__main__":
-    cli()
+    cli(prog_name=program_name)
