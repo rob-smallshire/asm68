@@ -267,7 +267,7 @@ class Integers:
     def __init__(self, items):
         if len(items) < 1:
             raise ValueError("At least one integer must be provided")
-        if not all(isinstance(item, Integral) for item in items):
+        if not all(isinstance(item, (Integral, Label)) for item in items):
             raise TypeError("Not all items in {} are of integral type".format(reprlib.repr(items)))
         self._items = tuple(items)
 

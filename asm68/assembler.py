@@ -1,4 +1,5 @@
-from collections import defaultdict, Iterable
+from collections import defaultdict
+from collections.abc import Iterable
 from functools import singledispatch
 from itertools import islice
 
@@ -157,11 +158,26 @@ def _(statement, asm):
         raise TypeError("FDB value must be integers")
     b = bytearray()
     for i, v in enumerate(operand):
-        if v not in range(0, 65536):
-            raise ValueError("FDB value {} at index {} not in range(0, 65536)")
-        b.append((v >> 8) & 0xff)
-        b.append(v & 0xff)
+        hi, lo = fdb_value(v, asm)
+        b.append(hi)
+        b.append(lo)
     asm._extend(b)
+
+
+def fdb_value(v, asm):
+    if isinstance(v, Label):
+        if v.name in asm._label_addresses:
+            value = asm._label_addresses[v.name]
+        else:
+            value = 0
+            asm._more_passes_required = True
+    else:
+        value = v
+    if value not in range(0, 65536):
+        raise ValueError(f"FDB value {value} (0x{value:04x}) not in 0–65535 (0x0-0xFFFF)")
+    hi = (value >> 8) & 0xff
+    lo = value & 0xff
+    return hi, lo
 
 
 @assemble_statement.register(Call)

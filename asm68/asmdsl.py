@@ -161,7 +161,7 @@ def _(operand):
 def _(operand):
     if all(isinstance(item, Register) for item in operand):
         return Registers(operand)
-    elif all(isinstance(item, Integral) for item in operand):
+    elif all(isinstance(item, (Integral, Label)) for item in operand):
         return Integers(operand)
     else:
         raise TypeError("{} could not be parsed".format(operand))
