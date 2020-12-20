@@ -18,7 +18,7 @@ from asm68.label import Label
 from asm68.opcodes import OPCODES, Integral
 from asm68.registers import X, Y, U, S, A, B, D, E, F, W, AutoIncrementedRegister
 from asm68.twiddle import twos_complement, hi, lo
-from asmdsl import PROGRAM_COUNTER_LABEL_NAME
+from asm68.asmdsl import PROGRAM_COUNTER_LABEL_NAME
 
 
 def assemble(statements, origin=0):
@@ -134,6 +134,7 @@ def _(statement, asm):
     if not isinstance(operand, Immediate):
         raise TypeError("ORG operand must be an immediate value")
     asm.origin = operand.value
+
 
 @assemble_statement.register(Fcb)
 def _(statement, asm):
