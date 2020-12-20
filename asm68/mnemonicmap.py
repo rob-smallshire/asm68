@@ -2,6 +2,7 @@ from frozendict import frozendict
 
 from asm68.instructions import *
 from asm68.directives import *
+
 MNEMONIC_TO_STATEMENT = frozendict({
     ABX: Abx,
     ADCA: Adca,
