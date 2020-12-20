@@ -1,6 +1,5 @@
 import weakref
-from collections import Callable
-from collections.abc import Set
+from collections.abc import Set, Callable
 from functools import singledispatch
 from numbers import Integral
 
@@ -10,7 +9,7 @@ from asm68.label import Label
 from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
 from asm68.registers import Register, AutoIncrementedRegister
 from asm68.util import single
-from integers import U8, U16, U32, I8, I16, I32
+from asm68.integers import U8, U16, U32, I8, I16, I32
 
 PROGRAM_COUNTER_LABEL_NAME = "pc"
 
@@ -70,11 +69,11 @@ class Labeller(Label):
 
 class ProgramCounterLabel(Label):
     """A special label which points to the program counter."""
-    
+
     def __init__(self, asm):
         super().__init__(PROGRAM_COUNTER_LABEL_NAME)
         self._asm = weakref.ref(asm)
-        
+
 
 def statements(asm):
     return tuple(asm._statements)
@@ -99,7 +98,7 @@ def _(operand):
 @parse_operand.register(Integral)
 def _(operand):
     """Parse an immediate operand.
-    
+
     Immediate operands are simple values such as 0, 0x10, or 0b10101010, or an expression evaluating
     to such a value, such as ord("A").
     """
