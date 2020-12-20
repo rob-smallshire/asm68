@@ -1,9 +1,5 @@
-from functools import partial
-
 from asm68.asmdsl import AsmDsl
 from asm68.mnemonics import (FDB, ORG, NOP, JMP, LDA, STA, BITA, BEQ, CALL)
-from assembler import Assembler
-from instructions import Nop
 
 asm = AsmDsl()
 
@@ -28,8 +24,6 @@ def pad_until(address):
 # command:
 #
 #  picocom /dev/tty.usbserial-AI02KM9Y -b2400 -ye -d7 -p1
-
-
 
 
 asm         (   ORG,    0xC000,     "Bottom of the top 16 K ROM"    )

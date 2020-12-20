@@ -8,7 +8,7 @@ from asm68.assembler import assemble, assemble_statement, assemble_operand
 from asm68.mnemonics import *
 from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S, E, D, F, W
 from asm68.twiddle import twos_complement
-from integers import U8, U16
+from asm68.integers import U8, U16
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():
@@ -662,7 +662,7 @@ def test_program_counter_label():
     asm     (   LDS, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO S"  )
     asm     (   LDU, asm.pc,    "LOAD PROGRAM COUNTER AS IMMEDIATE INTO U"  )
     asm     (   SWI                                                         )
-    
+
     code = assemble(statements(asm))
     assert code[0] == bytes.fromhex(
         '8E 00 00'
@@ -671,41 +671,50 @@ def test_program_counter_label():
         'CE 00 0b'
         '3F'
     )
-    
-    
+
+
 def test_jump_addressing_mode_label_extended():
     asm = AsmDsl()
     asm .BEGIN ( JMP, {asm.BEGIN}, "LOOP FOREVER" )
-    
+
     code = assemble(statements(asm))
     assert code[0] == bytes.fromhex(
         '7E 00 00'
     )
-    
-    
+
+
 def test_jump_addressing_mode_extended():
     asm = AsmDsl()
     asm .BEGIN ( JMP, {U16(0xC000)}, "LOOP FOREVER" )
-    
+
     code = assemble(statements(asm))
     assert code[0] == bytes.fromhex(
         '7E C0 00'
     )
-    
-    
+
+
 def test_jump_addressing_mode_direct():
     asm = AsmDsl()
     asm  ( JMP, {U8(0xC0)}, "Jump to an address on the direct page" )
-    
+
     code = assemble(statements(asm))
     assert code[0] == bytes.fromhex(
         '0E C0'
-    ) 
-    
-    
+    )
+
+
 def test_jump_addressing_mode_immediate_raises_error():
     asm = AsmDsl()
-    
+
     with raises(TypeError):
         asm .BEGIN ( JMP, 0xC000, "ERROR!" )
-    
+
+
+def test_fdb_addressing_mode_label_extended():
+    asm = AsmDsl()
+    asm .BEGIN ( FDB, (asm.BEGIN,), "Assemble current address" )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '00 00'
+    )

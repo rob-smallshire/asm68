@@ -79,7 +79,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'asm68 = asm68.cli:main',
+            'asm68 = asm68.cli:cli',
         ],
     },
     long_description=LONG_DESCRIPTION,
