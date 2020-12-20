@@ -3,7 +3,7 @@ from numbers import Integral
 
 from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8, REL16
 from asm68.label import Label
-from util import typename
+from asm68.util import typename
 
 I = 0
 
@@ -45,7 +45,7 @@ class Immediate:
     @property
     def value(self):
         return self._value
-    
+
     @property
     def width(self):
         return self._width
