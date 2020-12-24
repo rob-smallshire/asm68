@@ -718,3 +718,26 @@ def test_fdb_addressing_mode_label_extended():
     assert code[0] == bytes.fromhex(
         '00 00'
     )
+
+
+def test_leventhal_6_2__find_first_non_blank_character():
+    asm = AsmDsl()
+    asm         (   LDX,    0x42,       "POINT TO START OF STRING"       )
+    asm         (   LDA,    0x20,       "GET ASCII SPACE FOR COMPARISON ")
+    asm  .CHBLK (   CMPA,   {0:X+1},    "IS CHARACTER AN ASCII SPACE?"   )
+    asm         (   BEQ,    asm.CHBLK,  "YES, KEEP EXAMINING CHARS"      )
+    asm         (   LEAX,   {-1:X},     "NO, MOVE POINTER BACK ONE"      )
+    asm         (   STX,    {0x40},     "SAVE ADDRESS OF FIRST"
+                                              "NON-BLANK CHARACTER"      )
+    asm         (   SWI                                                  )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '8E 0042'
+        '86 20'
+        'A1 80'
+        '27 FC'
+        '30 1F'
+        '9F 40'
+        '3F'
+    )
