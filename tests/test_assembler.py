@@ -1,14 +1,20 @@
+import logging
+from logging import Handler, NOTSET
+from logging.handlers import QueueHandler
+
 import pytest
 from hypothesis import given, assume, example
 from hypothesis.strategies import lists, one_of, integers, sampled_from
 from pytest import raises, skip
 
 from asm68.asmdsl import AsmDsl, statements
-from asm68.assembler import assemble, assemble_statement, assemble_operand
+from asm68.assembler import assemble, assemble_statement, assemble_operand, TooManyPassesError, \
+    Assembler
 from asm68.mnemonics import *
 from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S, E, D, F, W
 from asm68.twiddle import twos_complement
 from asm68.integers import U8, U16
+from loghandler import ListLogHandler
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():
@@ -741,3 +747,39 @@ def test_leventhal_6_2__find_first_non_blank_character():
         '9F 40'
         '3F'
     )
+
+
+def test_unresolved_label_reports_error():
+    asm = AsmDsl()
+    asm         (   BEQ,    asm.CHBLK,  "YES, KEEP EXAMINING CHARS"      )
+    with raises(TooManyPassesError) as exc_info:
+        assemble(statements(asm))
+    assert exc_info.value.unresolved_label_names == ["CHBLK"]
+
+
+def test_warning_log_is_empty_when_no_warnings_emitted():
+    asm = AsmDsl()
+    asm         (   ADDB,   {0x20},  "ADD 0x20 TO ACCUMULATOR B"      )
+
+    logger = logging.getLogger('test-logger')
+    logger.setLevel(logging.WARN)
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    handler = ListLogHandler()
+    logger.addHandler(handler)
+    assemble(statements(asm), logger=logger)
+    assert len(handler.messages) == 0
+
+
+def test_unreferenced_label_reports_error():
+    asm = AsmDsl()
+    asm .UNUSED (   ADDB,   {0x20},  "ADD 0x20 TO ACCUMULATOR B"      )
+
+    logger = logging.getLogger('test-logger')
+    logger.setLevel(logging.WARN)
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    handler = ListLogHandler()
+    logger.addHandler(handler)
+    assemble(statements(asm), logger=logger)
+    assert handler.messages[0] == 'Unreferenced label: UNUSED'

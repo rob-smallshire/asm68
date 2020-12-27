@@ -3,10 +3,22 @@ import importlib.util
 import logging
 
 from asm68.asmdsl import statements
-from asm68.assembler import assemble
+from asm68.assembler import assemble, TooManyPassesError
 from asm68.continuous_bytes import ContinuousBytes
 
 logger = logging.getLogger(__name__)
+
+
+assert TooManyPassesError
+
+
+class ModuleLoadError(Exception):
+
+    def __init__(self, module_filepath, exception):
+        super().__init__(f"Could not load module: {str(module_filepath)}")
+        self.filepath = module_filepath
+        self.exception = exception
+
 
 
 def asm(source_filepath, output_file, output_format, repeat):
@@ -25,6 +37,7 @@ def asm(source_filepath, output_file, output_format, repeat):
     Raises:
         FileNotFoundError: If the source_filepath could not be found.
         ModuleLoadError: If the module could not be loaded.
+        TooManyPassesError: If too many assembly passes were required.
     """
     try:
         m = import_module_from_file(source_filepath)
@@ -33,21 +46,15 @@ def asm(source_filepath, output_file, output_format, repeat):
             source_filepath,
             e
         )
+
     code_blocks = assemble(statements(m.asm))
+
     for address, code in code_blocks.items():
         hex_assembly = ' '.join(format(b, '02X') for b in code)
         logger.debug("{:04X}: {}".format(address, hex_assembly))
         logger.info("code length: {} bytes".format(len(code)))
 
     export_code_blocks(output_file, code_blocks, output_format, repeat)
-
-
-class ModuleLoadError(Exception):
-
-    def __init__(self, module_filepath, exception):
-        super().__init__(f"Could not load module: {str(module_filepath)}")
-        self.filepath = module_filepath
-        self.exception = exception
 
 
 def import_module_from_file(module_filepath):

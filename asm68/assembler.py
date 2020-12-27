@@ -22,20 +22,48 @@ from asm68.twiddle import twos_complement, hi, lo
 from asm68.asmdsl import PROGRAM_COUNTER_LABEL_NAME
 
 
-def assemble(statements, origin=0):
-    asm = Assembler(origin)
+def assemble(statements, *, origin=0, logger=None):
+    """
+    Args:
+        statements: The sequence of statements to be assembled.
+        origin: The start address for assembly.
+        warnings: An optional mutable sequence to which warning messages will be appended.
+    """
+    asm = Assembler(origin, logger=logger)
     asm.assemble(statements)
-    return asm.object_code()
+    code = asm.object_code()
+    return code
 
+
+class TooManyPassesError(Exception):
+
+    def __init__(self, num_passes, unresolved_labels, unreferenced_labels):
+        self.num_passes = num_passes
+        self.unresolved_labels = unresolved_labels
+        self.unreferenced_labels = unreferenced_labels
+        super().__init__(
+            f"Too many passes ({self.num_passes})"
+        )
+
+    @property
+    def unresolved_label_names(self):
+        return sorted(label.name for label in self.unresolved_labels)
+
+    @property
+    def unreferenced_lavel_names(self):
+        return sorted(label.name for label in self.unreferenced_labels)
 
 class Assembler:
 
-    def __init__(self, origin=0):
+    def __init__(self, origin=0, logger=None):
         self._origin = origin
         self._pos = self.origin
         self._code = defaultdict(list)  # A dictionary mapping addresses to code fragments represented as lists of bytes strings.
         self._label_addresses = {}  # Maps label names to items in _code
+        self._unreferenced_labels = set()
+        self._unresolved_labels = set()
         self._more_passes_required = True
+        self._logger = logger
         self._i = 0
 
     def __str__(self):
@@ -62,6 +90,14 @@ class Assembler:
         self._origin = value
         self._pos = self._origin
 
+    @property
+    def unresolved_labels(self):
+        return self._unreferenced_labels
+
+    @property
+    def unreferenced_labels(self):
+        return self._unreferenced_labels
+
     def _in_existing_fragment(self, value):
 
         return any(value in range(address, len(code[0])) for address, code in self._code.items())
@@ -82,7 +118,7 @@ class Assembler:
         self._flatten()
         return {address: fragments[0] for address, fragments in self._code.items()}
 
-    def assemble(self, statements):
+    def assemble(self, statements, max_passes=3):
         # Do multi-pass assembly
         self._i = 0
         while self._more_passes_required:
@@ -92,6 +128,18 @@ class Assembler:
             for statement in statements:
                 self.assemble_statement(statement)
             self._i += 1
+            if self._i > max_passes:
+                raise TooManyPassesError(
+                    num_passes=self._i,
+                    unresolved_labels=self._unresolved_labels,
+                    unreferenced_labels=self._unreferenced_labels
+                )
+        self._warn_about_unreferenced_labels()
+
+    def _warn_about_unreferenced_labels(self):
+        if self._logger:
+            for label in self.unreferenced_labels:
+                self._logger.warning("Unreferenced label: %s", label)
 
     def assemble_statement(self, statement):
         self._label_addresses[PROGRAM_COUNTER_LABEL_NAME] = self.pos
@@ -110,6 +158,8 @@ class Assembler:
                     # else:
                     #    print("More passes required.")
             self._label_addresses[statement.label] = self.pos
+            self._unreferenced_labels.add(statement.label)
+            self._unresolved_labels.discard(statement.label)
 
 @singledispatch
 def assemble_statement(statement, asm):
@@ -168,9 +218,12 @@ def fdb_value(v, asm):
     if isinstance(v, Label):
         if v.name in asm._label_addresses:
             value = asm._label_addresses[v.name]
+            asm._unresolved_labels.discard(v)
         else:
             value = 0
             asm._more_passes_required = True
+            asm._unresolved_labels.add(v)
+        asm._unreferenced_labels.discard(v)
     else:
         value = v
     if value not in range(0, 65536):
@@ -226,11 +279,16 @@ def _(operand, opcode_key, asm, statement):
         label = operand.address
         if label.name in asm._label_addresses:
             target_address = asm._label_addresses[label.name]
-            return (hi(target_address), lo(target_address))
+            asm._unresolved_labels.discard(label)
+            result = (hi(target_address), lo(target_address))
         else:
             asm._more_passes_required = True
-            return (0, 0)
-    return (hi(operand.address), lo(operand.address))
+            asm._unresolved_labels.add(label)
+            result = (0, 0)
+        asm._unreferenced_labels.discard(label)
+    else:
+        result = (hi(operand.address), lo(operand.address))
+    return result
 
 branch_operand_widths = {
     REL8: 1,
@@ -255,6 +313,7 @@ def _(operand, opcode_key, asm, statement):
         else:
             assert opcode_key in {IMM, EXT}
             result = (hi(target_address), lo(target_address))
+        asm._unresolved_labels.discard(operand)
     else:
         asm._more_passes_required = True
         if opcode_key in branch_operand_widths:
@@ -262,6 +321,8 @@ def _(operand, opcode_key, asm, statement):
         else:
             assert opcode_key in {IMM, EXT}
             result = (0, 0)
+        asm._unresolved_labels.add(operand)
+    asm._unreferenced_labels.discard(operand)
     return result
 
 
