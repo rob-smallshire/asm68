@@ -51,7 +51,7 @@ class TooManyPassesError(Exception):
 
     @property
     def unreferenced_lavel_names(self):
-        return sorted(label.name for label in self.unreferenced_labels)
+        return sorted(self.unreferenced_labels)
 
 class Assembler:
 

@@ -53,8 +53,8 @@ def asm(source, output, format, repeat):
         return ExitCode.OS_FILE
     except api.TooManyPassesError as too_many_passes_error:
         click.secho("Too many assembler passes required", fg="red")
-        click.secho("Unresolved labels:" , ", ".join(label.name for label in too_many_passes_error.unresolved_labels))
-        click.secho("Unreferenced labels:" , ", ".join(label.name for label in too_many_passes_error.unreferenced_labels))
+        click.secho("Unresolved labels: {}".format(", ".join(too_many_passes_error.unresolved_label_names))),
+        click.secho("Unreferenced labels: {}".format(", ".join(too_many_passes_error.unreferenced_lavel_names)))
         sys.exit(ExitCode.DATA_ERR)
     except api.ModuleLoadError as module_load_error:
         e = module_load_error.exception
