@@ -50,7 +50,7 @@ class TooManyPassesError(Exception):
         return sorted(label.name for label in self.unresolved_labels)
 
     @property
-    def unreferenced_lavel_names(self):
+    def unreferenced_label_names(self):
         return sorted(self.unreferenced_labels)
 
 class Assembler:
