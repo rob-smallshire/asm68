@@ -3,7 +3,7 @@ from frozendict import frozendict
 from asm68.addrmodes import *
 from asm68.mnemonics import *
 
-OPCODES = frozendict({
+OPCODES_6809 = frozendict({
     ABX:   { INH: 0x3A,                                                                     },
     ADCA:  {              IMM: 0x89,   DIR: 0x99,   IDX: 0xA9,   EXT: 0xB9,                 },
     ADCB:  {              IMM: 0xC9,   DIR: 0xD9,   IDX: 0xE9,   EXT: 0xF9,                 },
@@ -116,9 +116,16 @@ OPCODES = frozendict({
 })
 
 
+OPCODES_6309 = frozendict({
+    BITMD: {              IMM: 0x113C                                                       },
+    LDMD:  {              IMM: 0x113D,                                                      },
+})
+
+OPCODES = frozendict({**OPCODES_6809, **OPCODES_6309})
+
 # Used to interpret the unusual addressing modes of these instructions.
 # From the programmers reference by Darren Atkinson:
-# 
+#
 #   "Unlike most other instructions which use the
 #    Direct, Indexed and Extended addressing modes, the operand value used by the JMP instruction is
 #    the Effective Address itself, rather than the memory contents stored at that address (unless

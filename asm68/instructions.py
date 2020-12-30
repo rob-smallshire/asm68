@@ -1,13 +1,13 @@
 from asm68.mnemonics import *
 from asm68.opcodes import OPCODES
-from asm68.registers import A, B, D, S, U, X, Y, CC
+from asm68.registers import A, B, D, S, U, X, Y, CC, MD
 from asm68.statement import Statement
 
 
 class Instruction(Statement):
 
     def __init__(self, operand, comment='', label=None):
-        addressing_modes = set(operand.codes) 
+        addressing_modes = set(operand.codes)
         if OPCODES[self.mnemonic].keys().isdisjoint(addressing_modes):
             raise TypeError("Invalid {} addressing mode for {}"
                 .format((type(operand).__name__).lower(), self.mnemonic))
@@ -97,6 +97,11 @@ class Bita(Instruction):
 class Bitb(Instruction):
     inherent_register = B
     mnemonic = BITB
+
+
+class Bitmd(Instruction):
+    inherent_register = MD
+    mnemonic = BITMD
 
 
 class Bhs(Instruction):
@@ -259,6 +264,10 @@ class Ldd(Instruction):
     inherent_register = D
     mnemonic = LDD
 
+
+class Ldmd(Instruction):
+    inherent_register = MD
+    mnemonic = LDMD
 
 class Lds(Instruction):
     inherent_register = S

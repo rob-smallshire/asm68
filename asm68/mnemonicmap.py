@@ -3,6 +3,7 @@ from frozendict import frozendict
 from asm68.instructions import *
 from asm68.directives import *
 
+# TODO: Build this automatically
 MNEMONIC_TO_STATEMENT = frozendict({
     ABX: Abx,
     ADCA: Adca,
@@ -21,6 +22,7 @@ MNEMONIC_TO_STATEMENT = frozendict({
     ASR: Asr,
     BITA: Bita,
     BITB: Bitb,
+    BITMD: Bitmd,
     BEQ: Beq,
     BHS: Bhs,
     BLO: Blo,
@@ -58,6 +60,7 @@ MNEMONIC_TO_STATEMENT = frozendict({
     LDA: Lda,
     LDB: Ldb,
     LDD: Ldd,
+    LDMD: Ldmd,
     LDS: Lds,
     LDU: Ldu,
     LDX: Ldx,
