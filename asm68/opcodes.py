@@ -118,7 +118,15 @@ OPCODES_6809 = frozendict({
 
 OPCODES_6309 = frozendict({
     BITMD: {              IMM: 0x113C                                                       },
+    LDE:   {              IMM: 0x0186,   DIR: 0x0196,   IDX: 0x01A6,   EXT: 0x01B6,         },
+    LDF:   {              IMM: 0x01C6,   DIR: 0x01D6,   IDX: 0x01E6,   EXT: 0x01F6,         },
+    LDQ:   {              IMM:   0xCD,   DIR:   0xDC,   IDX:   0xEC,   EXT:   0xFC,         },
+    LDW:   {              IMM:   0x86,   DIR:   0x96,   IDX:   0xA6,   EXT:   0xB6,         },
     LDMD:  {              IMM: 0x113D,                                                      },
+    STE:   {                             DIR: 0x0197,   IDX: 0x01A7,   EXT: 0x01B7,         },
+    STF:   {                             DIR: 0x01D7,   IDX: 0x01E7,   EXT: 0x01F7,         },
+    STQ:   {                             DIR: 0x00DD,   IDX: 0x00ED,   EXT: 0x00FD,         },
+    STW:   {                             DIR: 0x0097,   IDX: 0x00A7,   EXT: 0x00B7,         },
 })
 
 OPCODES = frozendict({**OPCODES_6809, **OPCODES_6309})

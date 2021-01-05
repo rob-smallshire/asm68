@@ -1,6 +1,6 @@
 from asm68.mnemonics import *
 from asm68.opcodes import OPCODES
-from asm68.registers import A, B, D, S, U, X, Y, CC, MD
+from asm68.registers import A, B, D, S, U, X, Y, CC, MD, W, E, F, Q
 from asm68.statement import Statement
 
 
@@ -244,11 +244,14 @@ class Jmp(Instruction):
 class Jsr(Instruction):
     mnemonic = JSR
 
+
 class Lbra(Instruction):
     mnemonic = LBRA
 
+
 class Lbne(Instruction):
     mnemonic = LBNE
+
 
 class Lda(Instruction):
     inherent_register = A
