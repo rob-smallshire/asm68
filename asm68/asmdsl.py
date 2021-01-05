@@ -66,6 +66,12 @@ class Labeller(Label):
             raise RuntimeError("AsmDsl instance no longer available.")
         return asm(*args, label=self.name, **kwargs)
 
+    def __getattr__(self, name):
+        asm = self._asm()
+        if asm is None:
+            raise RuntimeError("AsmDsl instance no longer available.")
+        return Labeller(asm, name=name)
+
 
 class ProgramCounterLabel(Label):
     """A special label which points to the program counter."""
