@@ -153,6 +153,10 @@ class Cmpd(Instruction):
     mnemonic = CMPD
 
 
+class Cmpr(Instruction):
+    mnemonic = CMPR
+
+
 class Cmps(Instruction):
     inherent_register = S
     mnemonic = CMPS
@@ -205,8 +209,29 @@ class Decb(Instruction):
     mnemonic = DECB
 
 
+class Decd(Instruction):
+    inherent_register = D
+    mnemonic = DECD
+
+
+class Dece(Instruction):
+    inherent_register = E
+    mnemonic = DECE
+
+
+class Decf(Instruction):
+    inherent_register = F
+    mnemonic = DECF
+
+
+class Decw(Instruction):
+    inherent_register = W
+    mnemonic = DECW
+
+
 class Dec(Instruction):
     mnemonic = DEC
+
 
 
 class Eora(Instruction):
@@ -231,6 +256,26 @@ class Inca(Instruction):
 class Incb(Instruction):
     inherent_register = B
     mnemonic = INCB
+
+
+class Incd(Instruction):
+    inherent_register = D
+    mnemonic = INCD
+
+
+class Ince(Instruction):
+    inherent_register = E
+    mnemonic = INCE
+
+
+class Incf(Instruction):
+    inherent_register = F
+    mnemonic = INCF
+
+
+class Incw(Instruction):
+    inherent_register = W
+    mnemonic = INCW
 
 
 class Inc(Instruction):
@@ -266,6 +311,26 @@ class Ldb(Instruction):
 class Ldd(Instruction):
     inherent_register = D
     mnemonic = LDD
+
+
+class Lde(Instruction):
+    inherent_register = E
+    mnemonic = LDE
+
+
+class Ldf(Instruction):
+    inherent_register = F
+    mnemonic = LDF
+
+
+class Ldq(Instruction):
+    inherent_register = Q
+    mnemonic = LDQ
+
+
+class Ldw(Instruction):
+    inherent_register = W
+    mnemonic = LDW
 
 
 class Ldmd(Instruction):
@@ -458,6 +523,21 @@ class Std(Instruction):
     mnemonic = STD
 
 
+class Ste(Instruction):
+    inherent_register = E
+    mnemonic = STE
+
+
+class Stf(Instruction):
+    inherent_register = F
+    mnemonic = STF
+
+
+class Stq(Instruction):
+    inherent_register = Q
+    mnemonic = STQ
+
+
 class Sts(Instruction):
     inherent_register = S
     mnemonic = STS
@@ -466,6 +546,11 @@ class Sts(Instruction):
 class Stu(Instruction):
     inherent_register = U
     mnemonic = STU
+
+
+class Stw(Instruction):
+    inherent_register = W
+    mnemonic = STW
 
 
 class Stx(Instruction):

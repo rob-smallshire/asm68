@@ -173,8 +173,7 @@ def _(statement, asm):
 
     opcodes = OPCODES[statement.mnemonic]
     opcode_key = single(operating_addressing_modes & opcodes.keys())
-    opcode = opcodes[opcode_key]
-    asm._opcode_bytes = (opcode,) if opcode <= 0xFF else (hi(opcode), lo(opcode))
+    asm._opcode_bytes = bytes.fromhex(opcodes[opcode_key])
     operand_bytes = assemble_operand(operand, opcode_key, asm, statement)
     asm._extend(asm._opcode_bytes + operand_bytes)
 
@@ -259,19 +258,19 @@ def assemble_operand(operand, opcode_key, asm, statement):
 
 @assemble_operand.register(Inherent)
 def _(operand, opcode_key, asm, statement):
-    return ()
+    return bytes()
 
 @assemble_operand.register(Immediate)
 def _(operand, opcode_key, asm, statement):
     assert statement.inherent_register.width in {1, 2}
     if statement.inherent_register.width == 1:
-        return (operand.value, )
+        return bytes((operand.value, ))
     elif statement.inherent_register.width == 2:
-        return (hi(operand.value), lo(operand.value))
+        return bytes((hi(operand.value), lo(operand.value)))
 
 @assemble_operand.register(PageDirect)
 def _(operand, opcode_key, asm, statement):
-    return (operand.address, )
+    return bytes((operand.address, ))
 
 @assemble_operand.register(ExtendedDirect)
 def _(operand, opcode_key, asm, statement):
@@ -288,7 +287,7 @@ def _(operand, opcode_key, asm, statement):
         asm._unreferenced_labels.discard(label)
     else:
         result = (hi(operand.address), lo(operand.address))
-    return result
+    return bytes(result)
 
 branch_operand_widths = {
     REL8: 1,
@@ -323,7 +322,7 @@ def _(operand, opcode_key, asm, statement):
             result = (0, 0)
         asm._unresolved_labels.add(operand)
     asm._unreferenced_labels.discard(operand)
-    return result
+    return bytes(result)
 
 
 
@@ -356,29 +355,29 @@ def _(operand, opcode_key, asm, statement):
             # Accumulator offset
             post_byte = ACCUMULATOR_OFFSET_POST_BYTE[operand.offset]
             post_byte |= rr << 5
-            return (post_byte, )
+            return bytes((post_byte, ))
         elif isinstance(operand.offset, Integral):
             if operand.offset == 0:
                 post_byte = 0b10000100
                 post_byte |= rr << 5
-                return (post_byte, )
+                return bytes((post_byte, ))
             elif -16 <= operand.offset <= +15:
                 # 5-bit offset
                 post_byte = twos_complement(operand.offset, 5)
                 post_byte |= rr << 5
-                return (post_byte, )
+                return bytes((post_byte, ))
             elif -128 <= operand.offset <= +127:
                 # 8-bit offset
                 post_byte = 0b10001000
                 post_byte |= rr << 5
                 offset_byte = twos_complement(operand.offset, 8)
-                return (post_byte, offset_byte)
+                return bytes((post_byte, offset_byte))
             elif -32768 <= operand.offset <= +32767:
                 # 16-bit offset
                 post_byte = 0b10001001
                 post_byte |= rr << 5
                 offset_bytes = twos_complement(operand.offset, 16)
-                return (post_byte, hi(offset_bytes), lo(offset_bytes))
+                return bytes((post_byte, hi(offset_bytes), lo(offset_bytes)))
         else:
             raise ValueError(f"Cannot use indexed addressing offset {operand.offset} with base {operand.base}")
 
@@ -388,8 +387,6 @@ def _(operand, opcode_key, asm, statement):
         rr = RR[operand.base.register]
         post_byte = INDEX_CREMENT_POST_BYTE[operand.base.delta]
         post_byte |= rr << 5
-        return (post_byte, )
+        return bytes((post_byte, ))
     else:
         raise ValueError(f"Cannot use {operand.base} as a base register for indexed addressing modes")
-
-
