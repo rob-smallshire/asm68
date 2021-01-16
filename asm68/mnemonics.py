@@ -1,35 +1,39 @@
+from util import typename
+
+
 class Mnemonic:
 
-    _instances = {}
-
-    def __new__(cls, mnemonic):
-        if len(mnemonic) < 1:
-            raise ValueError("Mnemonic cannot be empty")
-        if not (mnemonic[0].isalpha() and mnemonic[0].isupper()):
-            raise ValueError("Mnemonic {} does not begin with an uppercase alphabetic character".format(mnemonic))
-        if (len(mnemonic) > 1) and not (mnemonic[1:].isalnum() and all(c.isupper() for c in mnemonic[1:] if c.isalpha())):
-            raise ValueError("Mnemonic {} is not uppercase alphanumeric".format(mnemonic))
-        if mnemonic in cls._instances:
-            return cls._instances[mnemonic]
-        obj = object.__new__(cls)
-        obj._mnemonic = mnemonic
-        cls._instances[mnemonic] = obj
-        return obj
+    def __init__(self, mnemonic):
+        self._mnemonic = mnemonic
 
     def __str__(self):
         return self._mnemonic
 
     def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, self._mnemonic)
+        return "{}({})".format(typename(self), self._mnemonic)
+
+    def __hash__(self):
+        return hash(self._mnemonic)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._mnemonic == other._mnemonic
 
 
 
 ABX = Mnemonic('ABX')
 ADCA = Mnemonic('ADCA')
 ADCB = Mnemonic('ADCB')
+ADCD = Mnemonic('ADCD')
+ADCR = Mnemonic('ADCR')
 ADDA = Mnemonic('ADDA')
 ADDB = Mnemonic('ADDB')
 ADDD = Mnemonic('ADDD')
+ADDE = Mnemonic('ADDE')
+ADDF = Mnemonic('ADDF')
+ADDR = Mnemonic('ADDR')
+ADDW = Mnemonic('ADDW')
 ANDA = Mnemonic('ANDA')
 ANDB = Mnemonic('ANDB')
 ANDCC = Mnemonic('ANDCC')

@@ -1,3 +1,5 @@
+from abc import abstractmethod, ABC
+
 from asm68.mnemonics import *
 from asm68.opcodes import OPCODES
 from asm68.registers import A, B, D, S, U, X, Y, CC, MD, W, E, F, Q
@@ -13,33 +15,167 @@ class Instruction(Statement):
                 .format((type(operand).__name__).lower(), self.mnemonic))
         super().__init__(operand, comment, label)
 
-class Abx(Instruction):
+    def assemble_operand(self, operand, opcode_key, asm):
+        asm.assemble_operand(operand, opcode_key, self)
+
+
+class InherentOperandAcceptable:
+
+    def inherent_operand(self, operand, opcode_key, asm):
+        return asm.assemble_inherent_operand(operand, opcode_key, self)
+
+
+class InterRegisterOperandAcceptable:
+
+    def register_operand(self, operand, opcode_key, asm):
+        return asm.assemble_register_operand(operand, opcode_key, self)
+
+
+class ImmediateOperandAcceptable:
+
+    def immediate_operand(self, operand, opcode_key, asm):
+        return asm.assemble_immediate_operand(operand, opcode_key, self)
+
+
+class PageDirectOperandAcceptable:
+
+    def page_direct_operand(self, operand, opcode_key, asm):
+        return asm.assemble_page_direct_operand(operand, opcode_key, self)
+
+
+class ExtendedDirectOperandAcceptable:
+
+    def extended_direct_operand(self, operand, opcode_key, asm):
+        return asm.assemble_extended_direct_operand(operand, opcode_key, self)
+
+
+class ShortRelativeOperandAcceptable:
+
+    def relative_operand(self, operand, opcode_key, asm):
+        return asm.assemble_short_relative_operand(operand, opcode_key, self)
+
+
+class LongRelativeOperandAcceptable:
+
+    def relative_operand(self, operand, opcode_key, asm):
+        return asm.assmeble_long_relative_operand(operand, opcode_key, self)
+
+
+class IndexedOperandAcceptable:
+
+    def indexed_operand(self, operand, opcode_key, asm):
+        return asm.assemble_indexed_operand(operand, opcode_key, statement)
+
+
+class AddressOperandAcceptable(
+    PageDirectOperandAcceptable,
+    IndexedOperandAcceptable,
+    ExtendedDirectOperandAcceptable,
+):
+    pass
+
+
+
+# TODO: Make these classes automatically
+
+class Abx(Instruction, InherentOperandAcceptable):
     mnemonic = ABX
 
 
-class Adca(Instruction):
+class Adca(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
     inherent_register = A
     mnemonic = ADCA
 
 
-class Adcb(Instruction):
+class Adcb(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
     inherent_register = B
     mnemonic = ADCB
 
 
-class Adda(Instruction):
+class Adcd(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
+    inherent_register = D
+    mnemonic = ADCD
+
+
+class Adcr(
+    Instruction,
+    InterRegisterOperandAcceptable,
+):
+    mnemonic = ADCR
+
+
+
+class Adda(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
     inherent_register = A
     mnemonic = ADDA
 
 
-class Addb(Instruction):
+class Addb(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
     inherent_register = B
     mnemonic = ADDB
 
 
-class Addd(Instruction):
+class Addd(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
     inherent_register = D
     mnemonic = ADDD
+
+
+class Adde(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
+    inherent_register = E
+    mnemonic = ADDE
+
+
+class Addf(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
+    inherent_register = F
+    mnemonic = ADDF
+
+
+class Addr(
+    Instruction,
+    InterRegisterOperandAcceptable
+):
+    mnemonic = ADDR
+
+
+class Addw(
+    Instruction,
+    ImmediateOperandAcceptable,
+    AddressOperandAcceptable,
+):
+    inherent_register = W
+    mnemonic = ADDW
 
 
 class Anda(Instruction):
@@ -598,6 +734,7 @@ class Tfr(Instruction):
     mnemonic = TFR
 
 
+
 class Tsta(Instruction):
     inherent_register = A
     mnemonic = TSTA
@@ -610,6 +747,3 @@ class Tstb(Instruction):
 
 class Tst(Instruction):
     mnemonic = TST
-
-
-

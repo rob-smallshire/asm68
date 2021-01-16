@@ -1,4 +1,7 @@
-class Statement:
+from abc import ABC
+
+
+class Statement(ABC):
 
     mnemonic = None
 

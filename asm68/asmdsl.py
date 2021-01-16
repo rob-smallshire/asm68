@@ -41,7 +41,8 @@ class AsmDsl:
         if label is not None:
             self._label_statement_index[label] = len(self._statements)
         operand_node = parse_operand(operand)
-        if mnemonic not in MNEMONIC_TO_STATEMENT:
+        mnemonic_to_statement = MNEMONIC_TO_STATEMENT
+        if mnemonic not in mnemonic_to_statement:
             raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
         statement_node = MNEMONIC_TO_STATEMENT[mnemonic](operand_node, comment, label)
         return statement_node

@@ -113,7 +113,8 @@ PCR = Register('PCR', 2)
 DP = Register('DP', 1)
 CC = Register('CC', 1)
 MD = Register('MD', 1)
-# TODO: V Register?
+V = Register('V', 2)
+Z = Register('Z', 2)
 
 INDEX_REGISTERS = {X, Y, U, S}
 ACCUMULATORS_1 = {A, B, E, F}

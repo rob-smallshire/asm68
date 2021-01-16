@@ -4,7 +4,7 @@ from asm68.instructions import *
 from asm68.directives import *
 
 # TODO: Build this automatically
-MNEMONIC_TO_STATEMENT = frozendict({
+MNEMONIC_TO_STATEMENT = {
     ABX: Abx,
     ADCA: Adca,
     ADCB: Adcb,
@@ -137,6 +137,6 @@ MNEMONIC_TO_STATEMENT = frozendict({
     FCB: Fcb,
     FDB: Fdb,
     CALL: Call,
-})
+}
 from asm68.mnemonics import *
 
