@@ -247,12 +247,7 @@ class Assembler:
                 # TODO: Consider threading opcode_bytes through as an argument
                 offset = target_address - self.pos - len(opcode_bytes) - operand_bytes_length
                 unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
-                if operand_bytes_length == 1:
-                    result = bytes((unsigned_offset,))
-                elif operand_bytes_length == 2:
-                    result = bytes((hi(unsigned_offset), lo(unsigned_offset)))
-                else:
-                    assert False, f"Unexpected operand bytes length {operand_bytes_length}"
+                result = self.value_to_bytes(unsigned_offset, operand_bytes_length)
                 self._unresolved_labels.discard(operand)
             else:
                 self._more_passes_required = True
@@ -262,6 +257,15 @@ class Assembler:
         else:
             # TODO: What if the operand is a number?
             raise NotImplementedError
+        return result
+
+    def value_to_bytes(self, unsigned_offset, operand_bytes_length):
+        if operand_bytes_length == 1:
+            result = bytes((unsigned_offset,))
+        elif operand_bytes_length == 2:
+            result = bytes((hi(unsigned_offset), lo(unsigned_offset)))
+        else:
+            assert False, f"Unexpected operand bytes length {operand_bytes_length}"
         return result
 
     def assemble_register_operand(self, operand, opcode_key, statement):
