@@ -14,7 +14,7 @@ from asm68.mnemonics import *
 from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S, E, D, F, W
 from asm68.twiddle import twos_complement
 from asm68.integers import U8, U16
-from loghandler import ListLogHandler
+from asm68.loghandler import ListLogHandler
 
 
 def test_assemble_unsupported_statement_type_raises_type_error():

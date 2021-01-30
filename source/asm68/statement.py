@@ -3,13 +3,29 @@ from abc import ABC
 
 class Statement(ABC):
 
+    _mnemonic_map = {}
+
     mnemonic = None
 
-    def __init__(self, operand, comment='', label=None):
+    def __init_subclass__(cls, **kwargs):
+        print(cls, kwargs, hasattr(cls, "mnemonic") and cls.mnemonic)
+        if cls.mnemonic is not None:
+            cls._mnemonic_map[cls.mnemonic] = cls
+
+    @classmethod
+    def from_mnemonic(cls, mnemonic, operand, comment=None, label=None):
+        try:
+            subclass = cls._mnemonic_map[mnemonic]
+        except KeyError:
+            raise ValueError(f"No statement matching mnemonic {mnemonic}")
+        return subclass(operand, comment, label)
+
+    def __init__(self, operand, comment=None, label=None):
         if self.mnemonic is None:
             raise NotImplementedError("Statement class {} does not override mnemonic".format(self.__class__))
+
         self._operand = operand
-        self._comment = comment
+        self._comment = comment or ''
         self._label = label
 
     def __repr__(self):

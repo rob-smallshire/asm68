@@ -1,17 +1,15 @@
 import gc
-from hypothesis import given, assume
+from hypothesis import given
 from hypothesis.strategies import lists, integers, binary
 from pytest import raises
 
 from asm68.addrmodes import Immediate, Inherent, PageDirect, ExtendedDirect, ExtendedIndirect, Registers, Indexed
 from asm68.asmdsl import AsmDsl, statements, statement_index, parse_operand, parse_indirect_operand
-from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
-from asm68.instructions import Abx, Lda, Adda, Addb, Inc, Tfr, Pshs, LDB, SUBA, CMPA, BLO, STB, SWI
+from asm68.instructions import AbX, LdA, AddA, AddB, Inc, Tfr, PshS
 from asm68.label import Label
 from asm68.mnemonics import ABX, LDA, ADDB, ADDA, INC, ASLA, ASRA, LSRA, TFR, PSHS, Mnemonic
 from asm68.registers import A, B, PC, U, Y, X, DP, CC
 from asm68.integers import U8, U16, U32, I8, I16, I32
-from tests.test_mnemonics import mnemonics
 
 
 def test_none_returns_inherent_addressing_mode():
@@ -115,7 +113,7 @@ def test_list_causes_indirection_for_label():
 def test_inherent_address_assembly():
     asm = AsmDsl()
     asm( ABX )
-    assert statements(asm) == (Abx(Inherent()), )
+    assert statements(asm) == (AbX(Inherent()), )
 
 
 def test_register_two_address_assembly():
@@ -127,25 +125,25 @@ def test_register_two_address_assembly():
 def test_register_seven_address_assembly():
     asm = AsmDsl()
     asm( PSHS, (PC, U, Y, X, DP, B, A, CC) )
-    assert statements(asm) == (Pshs(Registers((PC, U, Y, X, DP, B, A, CC))), )
+    assert statements(asm) == (PshS(Registers((PC, U, Y, X, DP, B, A, CC))), )
 
 
 def test_immediate_address_assembly():
     asm = AsmDsl()
     asm( LDA, 0x30 )
-    assert statements(asm) == (Lda(Immediate(0x30)),)
+    assert statements(asm) == (LdA(Immediate(0x30)),)
 
 
 def test_page_direct_address_assembly():
     asm = AsmDsl()
     asm( ADDA, {0x30} )
-    assert statements(asm) == (Adda(PageDirect(0x30)), )
+    assert statements(asm) == (AddA(PageDirect(0x30)), )
 
 
 def test_extended_direct_address_assembly():
     asm = AsmDsl()
     asm( ADDB, {0x1C48} )
-    assert statements(asm) == (Addb(ExtendedDirect(0x1C48)), )
+    assert statements(asm) == (AddB(ExtendedDirect(0x1C48)), )
 
 
 def test_extended_indirect_address_assembly():
@@ -181,7 +179,7 @@ def test_incorrect_extended_addressing_mode_raises_type_error():
 def test_indexed_zero_offset():
     asm = AsmDsl()
     asm( ADDA, {0: X} )
-    assert statements(asm) == (Adda(Indexed(X, 0)), )
+    assert statements(asm) == (AddA(Indexed(X, 0)), )
 
 
 def test_make_label():
@@ -203,10 +201,8 @@ def test_incorrect_number_of_arguments(args):
         asm(*args)
 
 
-@given(m=mnemonics())
-def test_unknown_mnemonic_raises_value_error(m):
-    mnemonic = Mnemonic(m)
-    assume(mnemonic not in MNEMONIC_TO_STATEMENT)
+def test_unknown_mnemonic_raises_value_error():
+    mnemonic = Mnemonic("XXX")
     asm = AsmDsl()
     with raises(ValueError):
         asm(mnemonic)

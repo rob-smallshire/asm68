@@ -6,10 +6,10 @@ from numbers import Integral
 from asm68.addrmodes import (Immediate, Inherent, PageDirect, ExtendedDirect,
                              ExtendedIndirect, Registers, Indexed, Integers)
 from asm68.label import Label
-from asm68.mnemonicmap import MNEMONIC_TO_STATEMENT
 from asm68.registers import Register, AutoIncrementedRegister
 from asm68.util import single
 from asm68.integers import U8, U16, U32, I8, I16, I32
+from asm68.instructions import *
 
 PROGRAM_COUNTER_LABEL_NAME = "pc"
 
@@ -41,10 +41,7 @@ class AsmDsl:
         if label is not None:
             self._label_statement_index[label] = len(self._statements)
         operand_node = parse_operand(operand)
-        mnemonic_to_statement = MNEMONIC_TO_STATEMENT
-        if mnemonic not in mnemonic_to_statement:
-            raise ValueError("No such opcode matching mnemonic {}".format(mnemonic))
-        statement_node = MNEMONIC_TO_STATEMENT[mnemonic](operand_node, comment, label)
+        statement_node = Statement.from_mnemonic(mnemonic, operand_node, comment, label)
         return statement_node
 
     @property

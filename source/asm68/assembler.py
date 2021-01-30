@@ -168,27 +168,25 @@ class Assembler:
         return bytes()
 
     def assemble_immediate_operand(self, operand, opcode_key, statement):
-        assert statement.inherent_register.width in {1, 2}
-        if statement.inherent_register.width == 1:
-            return bytes((operand.value, ))
-        elif statement.inherent_register.width == 2:
-            return bytes((hi(operand.value), lo(operand.value)))
+        if isinstance(operand, Label):
+            result = self.assemble_label_operand(operand)
+        else:
+            assert statement.inherent_register.width in {1, 2}
+            if statement.inherent_register.width == 1:
+                result = (operand.value, )
+            elif statement.inherent_register.width == 2:
+                result = (hi(operand.value), lo(operand.value))
+            else:
+                assert False, f"Unexpected inherent register width {statement.inherent_register.width}"
+        return bytes(result)
 
     def assemble_page_direct_operand(self, operand, opcode_key, statement):
+        # TODO: What about labels?
         return bytes((operand.address, ))
 
     def assemble_extended_direct_operand(self, operand, opcode_key, statement):
         if isinstance(operand.address, Label):
-            label = operand.address
-            if label.name in self._label_addresses:
-                target_address = self._label_addresses[label.name]
-                self._unresolved_labels.discard(label)
-                result = (hi(target_address), lo(target_address))
-            else:
-                self._more_passes_required = True
-                self._unresolved_labels.add(label)
-                result = (0, 0)
-            self._unreferenced_labels.discard(label)
+            result = self.assemble_label_operand(operand.address)
         else:
             result = (hi(operand.address), lo(operand.address))
         return bytes(result)
@@ -246,9 +244,15 @@ class Assembler:
         if isinstance(operand.address, Label):
             if operand.name in self._label_addresses:
                 target_address = self._label_addresses[operand.name]
+                # TODO: Consider threading opcode_bytes through as an argument
                 offset = target_address - self.pos - len(self._opcode_bytes) - operand_bytes_length
                 unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
-                result = bytes((unsigned_offset,))
+                if operand_bytes_length == 1:
+                    result = bytes((unsigned_offset,))
+                elif operand_bytes_length == 2:
+                    result = bytes((hi(unsigned_offset), lo(unsigned_offset)))
+                else:
+                    assert False, f"Unexpected operand bytes length {operand_bytes_length}"
                 self._unresolved_labels.discard(operand)
             else:
                 self._more_passes_required = True
@@ -266,6 +270,18 @@ class Assembler:
         print("statement =", statement)
         raise NotImplementedError
 
+    def assemble_label_operand(self, label):
+        if label.name in self._label_addresses:
+            target_address = self._label_addresses[label.name]
+            self._unresolved_labels.discard(label)
+            result = (hi(target_address), lo(target_address))
+        else:
+            self._more_passes_required = True
+            self._unresolved_labels.add(label)
+            result = (0, 0)
+        self._unreferenced_labels.discard(label)
+        return result
+
 @singledispatch
 def assemble_statement(statement, asm):
     raise TypeError("Statement {} could not be assembled".format(statement))
@@ -276,13 +292,13 @@ def _(statement, asm):
 
     operating_addressing_modes = set(operand.codes)
 
-    opcodes = OPCODES[statement.mnemonic]
+    opcodes = OPCODES[statement.mnemonic.key]
     opcode_key = single(operating_addressing_modes & opcodes.keys())
     asm._opcode_bytes = bytes.fromhex(opcodes[opcode_key])
     # TODO: Dispatch this back to a method on the instruction
     #       Maybe assemble_with_operand instead of assembling
     #       the opcode separately here
-    operand_bytes = statement.assemble_operand(operand, opcode_key, asm, statement)
+    operand_bytes = statement.assemble_operand(operand, opcode_key, asm)
     #operand_bytes = assemble_operand(operand, opcode_key, asm, statement)
     asm._extend(asm._opcode_bytes + operand_bytes)
 
@@ -375,7 +391,7 @@ def _(operand, opcode_key, asm, statement):
     try:
         operand_assembler = statement.inherent_operand
     except AttributeError:
-        raise TypeMismatchError("statement does not support inherent addressing")
+        raise TypeMismatchError(f"statement {statement.mnemonic} does not support inherent addressing")
     return operand_assembler(operand, opcode_key, asm)
 
 
@@ -384,7 +400,7 @@ def _(operand, opcode_key, asm, statement):
     try:
         operand_assembler = statement.immediate_operand
     except AttributeError:
-        raise TypeMismatchError("statement does not support immediate operands")
+        raise TypeMismatchError(f"statement {statement.mnemonic} does not support immediate operands")
     return operand_assembler(operand, opcode_key, asm)
 
 
@@ -393,7 +409,7 @@ def _(operand, opcode_key, asm, statement):
     try:
         operand_assembler = statement.page_direct_operand
     except AttributeError:
-        raise TypeMismatchError("statement does not support page-direct operands")
+        raise TypeMismatchError(f"statement {statement.mnemonic} does not support page-direct operands")
     return operand_assembler(operand, opcode_key, asm)
 
 
@@ -402,7 +418,7 @@ def _(operand, opcode_key, asm, statement):
     try:
         operand_assembler = statement.extended_direct_operand
     except AttributeError:
-        raise TypeMismatchError("statement does not support extended direct operands")
+        raise TypeMismatchError(f"statement {statement.mnemonic} does not support extended direct operands")
     return operand_assembler(operand, opcode_key, asm)
 
 
@@ -414,7 +430,7 @@ def _(operand, opcode_key, asm, statement):
         try:
             operand_assembler = statement.immediate_operand
         except AttributeError:
-            raise TypeMismatchError("statement does not support label operands")
+            raise TypeMismatchError(f"statement {statement.mnemonic} does not support label operands")
     return operand_assembler(operand, opcode_key, asm)
 
 
@@ -441,8 +457,11 @@ INDEX_CREMENT_POST_BYTE = {
 
 @assemble_operand.register(Indexed)
 def _(operand, opcode_key, asm, statement):
-    return statement.indexed_operand()
-
+    try:
+        operand_assembler = statement.indexed_operand
+    except AttributeError:
+        raise TypeMismatchError(f"statement {statement.mnemonic} does not support indexed operands")
+    return operand_assembler(operand, opcode_key, asm)
 
 
 REGISTER_NYBBLES_6809 = {
