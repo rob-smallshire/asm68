@@ -161,13 +161,13 @@ class Assembler:
             self._unreferenced_labels.add(statement.label)
             self._unresolved_labels.discard(statement.label)
 
-    def assemble_operand(self, operand, opcode_key, statement):
-        return assemble_operand(operand, opcode_key, self, statement)
+    def assemble_operand(self, operand, opcode_key, statement, opcode_bytes):
+        return assemble_operand(operand, opcode_key, self, statement, opcode_bytes)
 
-    def assemble_inherent_operand(self, operand, opcode_key, statement):
+    def assemble_inherent_operand(self, operand, opcode_key, statement, opcode_bytes):
         return bytes()
 
-    def assemble_immediate_operand(self, operand, opcode_key, statement):
+    def assemble_immediate_operand(self, operand, opcode_key, statement, opcode_bytes):
         if isinstance(operand, Label):
             result = self.assemble_label_operand(operand)
         else:
@@ -180,18 +180,18 @@ class Assembler:
                 assert False, f"Unexpected inherent register width {statement.inherent_register.width}"
         return bytes(result)
 
-    def assemble_page_direct_operand(self, operand, opcode_key, statement):
+    def assemble_page_direct_operand(self, operand, opcode_key, statement, opcode_bytes):
         # TODO: What about labels?
         return bytes((operand.address, ))
 
-    def assemble_extended_direct_operand(self, operand, opcode_key, statement):
+    def assemble_extended_direct_operand(self, operand, opcode_key, statement, opcode_bytes):
         if isinstance(operand.address, Label):
             result = self.assemble_label_operand(operand.address)
         else:
             result = (hi(operand.address), lo(operand.address))
         return bytes(result)
 
-    def assemble_indexed_operand(self, operand: Indexed, opcode_key, statement):
+    def assemble_indexed_operand(self, operand: Indexed, opcode_key, statement, opcode_bytes):
         if operand.base in RR:
             rr = RR[operand.base]
             if operand.offset in ACCUMULATOR_OFFSET_POST_BYTE:
@@ -234,18 +234,18 @@ class Assembler:
         else:
             raise ValueError(f"Cannot use {operand.base} as a base register for indexed addressing modes")
 
-    def assemble_short_relative_operand(self, operand, opcode_key, statement):
-        return self._assemble_relative_operand(operand, operand_bytes_length=1)
+    def assemble_short_relative_operand(self, operand, opcode_key, statement, opcode_bytes):
+        return self._assemble_relative_operand(operand, operand_bytes_length=1, opcode_bytes=opcode_bytes)
 
-    def assemble_long_relative_operand(self, operand, opcode_key, statement):
-        return self._assemble_relative_operand(operand, operand_bytes_length=2)
+    def assemble_long_relative_operand(self, operand, opcode_key, statement, opcode_bytes):
+        return self._assemble_relative_operand(operand, operand_bytes_length=2, opcode_bytes=opcode_bytes)
 
-    def _assemble_relative_operand(self, operand, operand_bytes_length):
+    def _assemble_relative_operand(self, operand, operand_bytes_length, opcode_bytes):
         if isinstance(operand.address, Label):
             if operand.name in self._label_addresses:
                 target_address = self._label_addresses[operand.name]
                 # TODO: Consider threading opcode_bytes through as an argument
-                offset = target_address - self.pos - len(self._opcode_bytes) - operand_bytes_length
+                offset = target_address - self.pos - len(opcode_bytes) - operand_bytes_length
                 unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
                 if operand_bytes_length == 1:
                     result = bytes((unsigned_offset,))
@@ -294,13 +294,13 @@ def _(statement, asm):
 
     opcodes = OPCODES[statement.mnemonic.key]
     opcode_key = single(operating_addressing_modes & opcodes.keys())
-    asm._opcode_bytes = bytes.fromhex(opcodes[opcode_key])
+    opcode_bytes = bytes.fromhex(opcodes[opcode_key])
     # TODO: Dispatch this back to a method on the instruction
     #       Maybe assemble_with_operand instead of assembling
     #       the opcode separately here
-    operand_bytes = statement.assemble_operand(operand, opcode_key, asm)
+    operand_bytes = statement.assemble_operand(operand, opcode_key, asm, opcode_bytes)
     #operand_bytes = assemble_operand(operand, opcode_key, asm, statement)
-    asm._extend(asm._opcode_bytes + operand_bytes)
+    asm._extend(opcode_bytes + operand_bytes)
 
 
 @assemble_statement.register(Org)
@@ -382,48 +382,48 @@ class TypeMismatchError(Exception):
 
 
 @singledispatch
-def assemble_operand(operand, opcode_key, asm, statement):
+def assemble_operand(operand, opcode_key, asm, statement, opcode_bytes):
     raise TypeError("Operand {} could not be assembled".format(operand))
 
 
 @assemble_operand.register(Inherent)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     try:
         operand_assembler = statement.inherent_operand
     except AttributeError:
         raise TypeMismatchError(f"statement {statement.mnemonic} does not support inherent addressing")
-    return operand_assembler(operand, opcode_key, asm)
+    return operand_assembler(operand, opcode_key, asm, opcode_bytes)
 
 
 @assemble_operand.register(Immediate)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     try:
         operand_assembler = statement.immediate_operand
     except AttributeError:
         raise TypeMismatchError(f"statement {statement.mnemonic} does not support immediate operands")
-    return operand_assembler(operand, opcode_key, asm)
+    return operand_assembler(operand, opcode_key, asm, opcode_bytes)
 
 
 @assemble_operand.register(PageDirect)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     try:
         operand_assembler = statement.page_direct_operand
     except AttributeError:
         raise TypeMismatchError(f"statement {statement.mnemonic} does not support page-direct operands")
-    return operand_assembler(operand, opcode_key, asm)
+    return operand_assembler(operand, opcode_key, asm, opcode_bytes)
 
 
 @assemble_operand.register(ExtendedDirect)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     try:
         operand_assembler = statement.extended_direct_operand
     except AttributeError:
         raise TypeMismatchError(f"statement {statement.mnemonic} does not support extended direct operands")
-    return operand_assembler(operand, opcode_key, asm)
+    return operand_assembler(operand, opcode_key, asm, opcode_bytes)
 
 
 @assemble_operand.register(Label)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     try:
         operand_assembler = statement.relative_operand
     except AttributeError:
@@ -431,7 +431,7 @@ def _(operand, opcode_key, asm, statement):
             operand_assembler = statement.immediate_operand
         except AttributeError:
             raise TypeMismatchError(f"statement {statement.mnemonic} does not support label operands")
-    return operand_assembler(operand, opcode_key, asm)
+    return operand_assembler(operand, opcode_key, asm, opcode_bytes)
 
 
 RR = {X: 0b00,
@@ -456,12 +456,12 @@ INDEX_CREMENT_POST_BYTE = {
 }
 
 @assemble_operand.register(Indexed)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     try:
         operand_assembler = statement.indexed_operand
     except AttributeError:
         raise TypeMismatchError(f"statement {statement.mnemonic} does not support indexed operands")
-    return operand_assembler(operand, opcode_key, asm)
+    return operand_assembler(operand, opcode_key, asm, opcode_bytes)
 
 
 REGISTER_NYBBLES_6809 = {
@@ -489,5 +489,5 @@ REGISTER_NYBBLES_6309 = {**REGISTER_NYBBLES_6809, **REGISTER_NYBBLES_6309}
 
 
 @assemble_operand.register(Registers)
-def _(operand, opcode_key, asm, statement):
+def _(operand, opcode_key, asm, statement, opcode_bytes):
     return statement.register_operand()

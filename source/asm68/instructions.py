@@ -17,57 +17,57 @@ class Instruction(Statement):
                 .format((type(operand).__name__).lower(), self.mnemonic))
         super().__init__(operand, comment, label)
 
-    def assemble_operand(self, operand, opcode_key, asm):
-        return asm.assemble_operand(operand, opcode_key, self)
+    def assemble_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class InherentOperandAcceptable:
 
-    def inherent_operand(self, operand, opcode_key, asm):
-        return asm.assemble_inherent_operand(operand, opcode_key, self)
+    def inherent_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_inherent_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class InterRegisterOperandAcceptable:
 
-    def register_operand(self, operand, opcode_key, asm):
-        return asm.assemble_register_operand(operand, opcode_key, self)
+    def register_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_register_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class ImmediateOperandAcceptable:
 
-    def immediate_operand(self, operand, opcode_key, asm):
-        return asm.assemble_immediate_operand(operand, opcode_key, self)
+    def immediate_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_immediate_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class PageDirectOperandAcceptable:
 
-    def page_direct_operand(self, operand, opcode_key, asm):
-        return asm.assemble_page_direct_operand(operand, opcode_key, self)
+    def page_direct_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_page_direct_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class ExtendedDirectOperandAcceptable:
 
-    def extended_direct_operand(self, operand, opcode_key, asm):
-        return asm.assemble_extended_direct_operand(operand, opcode_key, self)
+    def extended_direct_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_extended_direct_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class ShortRelativeOperandAcceptable:
 
-    def relative_operand(self, operand, opcode_key, asm):
-        return asm.assemble_short_relative_operand(operand, opcode_key, self)
+    def relative_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_short_relative_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class LongRelativeOperandAcceptable:
 
-    def relative_operand(self, operand, opcode_key, asm):
-        return asm.assemble_long_relative_operand(operand, opcode_key, self)
+    def relative_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_long_relative_operand(operand, opcode_key, self, opcode_bytes)
 
 
 class IndexedOperandAcceptable:
 
-    def indexed_operand(self, operand, opcode_key, asm):
-        return asm.assemble_indexed_operand(operand, opcode_key, self)
-# TODO: Make these classes automatically
+    def indexed_operand(self, operand, opcode_key, asm, opcode_bytes):
+        return asm.assemble_indexed_operand(operand, opcode_key, self, opcode_bytes)
+
 
 this_module = sys.modules[__name__]
 print(this_module)
