@@ -161,8 +161,8 @@ class Assembler:
 
     def _label_statement(self, statement):
         if statement.label is not None:
-            if statement.label in self._label_addresses:
-                if self._label_addresses[statement.label] != self.pos:
+            if statement.label.name in self._label_addresses:
+                if self._label_addresses[statement.label.name] != self.pos:
                     # Different address used. What we do here depends on
                     # which compiler pass this is.
                     if self._i == 0:
@@ -170,9 +170,9 @@ class Assembler:
                                            .format(statement.label))
                     # else:
                     #    print("More passes required.")
-            self._label_addresses[statement.label] = self.pos
-            self._unreferenced_labels.add(statement.label)
-            self._unresolved_labels.discard(statement.label)
+            self._label_addresses[statement.label.name] = self.pos
+            self._unreferenced_labels.add(statement.label.name)
+            self._unresolved_labels.discard(statement.label.name)
 
     def assemble_operand(self, operand, opcode_key, statement, opcode_bytes):
         return assemble_operand(operand, opcode_key, self, statement, opcode_bytes)

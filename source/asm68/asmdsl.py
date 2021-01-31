@@ -38,10 +38,11 @@ class AsmDsl:
             operand, comment = args
         else:
             raise TypeError("Unhandled number are assembler arguments")
-        if label is not None:
-            self._label_statement_index[label] = len(self._statements)
         operand_node = parse_operand(operand)
         statement_node = Statement.from_mnemonic(mnemonic, operand_node, comment, label)
+        while label is not None:
+            self._label_statement_index[label.name] = len(self._statements)
+            label = label.chained_label
         return statement_node
 
     @property
@@ -54,21 +55,21 @@ class AsmDsl:
 
 class Labeller(Label):
 
-    def __init__(self, asm, name):
-        super().__init__(name)
+    def __init__(self, asm, name, chained_label=None):
+        super().__init__(name, chained_label)
         self._asm = weakref.ref(asm)
 
     def __call__(self, *args, **kwargs):
         asm = self._asm()
         if asm is None:
             raise RuntimeError("AsmDsl instance no longer available.")
-        return asm(*args, label=self.name, **kwargs)
+        return asm(*args, label=self, **kwargs)
 
     def __getattr__(self, name):
         asm = self._asm()
         if asm is None:
             raise RuntimeError("AsmDsl instance no longer available.")
-        return Labeller(asm, name=name)
+        return Labeller(asm, name=name, chained_label=self)
 
 
 class ProgramCounterLabel(Label):

@@ -10,10 +10,11 @@ class Label:
         IMM,
     })
 
-    def __init__(self, name):
+    def __init__(self, name, chained_label=None):
         if (not is_valid_variable_name(name)) or name.startswith('_'):
             raise ValueError("{!r} is not a valid label name".format(name))
         self._name = name
+        self._chained_label = chained_label
 
     @property
     def codes(self):
@@ -22,6 +23,10 @@ class Label:
     @property
     def name(self):
         return self._name
+
+    @property
+    def chained_label(self):
+        return self._chained_label
 
     def __repr__(self):
         return "{}({!r})".format(self.__class__.__name__, self._name)
