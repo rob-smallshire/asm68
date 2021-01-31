@@ -1,7 +1,7 @@
 import reprlib
 from numbers import Integral
 
-from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8, REL16
+from asm68.addrmodecodes import INH, IMM, DIR, IDX, EXT, REL8, REL16, INT
 from asm68.label import Label
 from asm68.util import typename
 
@@ -67,7 +67,7 @@ class Immediate:
 
 class Registers:
 
-    codes = {IMM}
+    codes = {IMM, INT}
 
     def __init__(self, registers):
         if len(registers) < 1:

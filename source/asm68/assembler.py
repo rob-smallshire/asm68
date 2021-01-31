@@ -53,6 +53,19 @@ class TooManyPassesError(Exception):
     def unreferenced_label_names(self):
         return sorted(self.unreferenced_labels)
 
+
+class InterRegisterError(Exception):
+
+    def __init__(self, message, register):
+        super().__init__(message)
+        self._register = register
+
+    @property
+    def register(self):
+        return self._register
+
+
+
 class Assembler:
 
     def __init__(self, origin=0, logger=None):
@@ -268,11 +281,19 @@ class Assembler:
             assert False, f"Unexpected operand bytes length {operand_bytes_length}"
         return result
 
-    def assemble_register_operand(self, operand, opcode_key, statement):
-        print("operand = ", operand)
-        print("opcode_key =", opcode_key)
-        print("statement =", statement)
-        raise NotImplementedError
+    def assemble_register_operand(self, operand, opcode_key, statement, opcode_bytes):
+        assert isinstance(operand, Registers)
+        source, target = operand.registers
+        try:
+            source_nybble = REGISTER_NYBBLES[source]
+        except KeyError:
+            raise InterRegisterError(f"Cannot use {source} as source register for inter-register instructions", source)
+        try:
+            target_nybble = REGISTER_NYBBLES[target]
+        except KeyError:
+            raise InterRegisterError(f"Cannot use {target} as target register for inter-register instructions", target)
+        result = (source_nybble << 4) | target_nybble
+        return bytes((result,))
 
     def assemble_label_operand(self, label):
         if label.name in self._label_addresses:
@@ -489,9 +510,9 @@ REGISTER_NYBBLES_6309 = {
     F: 0b1111,
 }
 
-REGISTER_NYBBLES_6309 = {**REGISTER_NYBBLES_6809, **REGISTER_NYBBLES_6309}
+REGISTER_NYBBLES = {**REGISTER_NYBBLES_6809, **REGISTER_NYBBLES_6309}
 
 
 @assemble_operand.register(Registers)
 def _(operand, opcode_key, asm, statement, opcode_bytes):
-    return statement.register_operand()
+    return statement.register_operand(operand, opcode_key, asm, opcode_bytes)

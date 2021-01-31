@@ -107,7 +107,7 @@ OPCODES_6809 = {
     "swi2":  { INH: '103F',                                                                   },
     "swi3":  { INH: '113F',                                                                   },
     "sync":  { INH: '13',                                                                     },
-    "tfr":   {              IMM: '1F',                                                        },
+    "tfr":   {              INT: '1F',                                                        },
     "tstA":  { INH: '4D',                                                                     },
     "tstB":  { INH: '5D',                                                                     },
     "tst":   {                           DIR: '0D',   IDX: '6D',   EXT: '7D',                 },
