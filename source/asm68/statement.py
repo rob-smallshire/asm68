@@ -1,5 +1,7 @@
 from abc import ABC
 
+from asm68.addrmodes import Inherent
+
 
 class Statement(ABC):
 
@@ -8,16 +10,17 @@ class Statement(ABC):
     mnemonic = None
 
     def __init_subclass__(cls, **kwargs):
-        print(cls, kwargs, hasattr(cls, "mnemonic") and cls.mnemonic)
         if cls.mnemonic is not None:
             cls._mnemonic_map[cls.mnemonic] = cls
 
     @classmethod
-    def from_mnemonic(cls, mnemonic, operand, comment=None, label=None):
+    def from_mnemonic(cls, mnemonic, operand=None, comment=None, label=None):
         try:
             subclass = cls._mnemonic_map[mnemonic]
         except KeyError:
             raise ValueError(f"No statement matching mnemonic {mnemonic}")
+        if operand is None:
+            operand = Inherent()
         return subclass(operand, comment, label)
 
     def __init__(self, operand, comment=None, label=None):
