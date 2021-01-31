@@ -1,5 +1,3 @@
-import sys
-
 from asm68 import mnemonics
 from asm68 import registers
 from asm68.addrmodecodes import INT, INH, IMM, DIR, IDX, EXT, REL8, REL16
@@ -69,12 +67,8 @@ class IndexedOperandAcceptable:
         return asm.assemble_indexed_operand(operand, opcode_key, self, opcode_bytes)
 
 
-this_module = sys.modules[__name__]
-print(this_module)
-
 for opcode, modes in OPCODES.items():
     name = upper_first(opcode)
-    print(name)
     inherent_name = uppercase_ending(opcode)
     bases = tuple(
         filter(
@@ -94,7 +88,7 @@ for opcode, modes in OPCODES.items():
     )
     members = {
         k: v for k, v in {
-            "__module__": this_module,
+            "__module__": __name__,
             "mnemonic": getattr(mnemonics, opcode.upper()),
             "inherent_register": inherent_name and getattr(registers, inherent_name),
         }.items() if v
@@ -105,4 +99,3 @@ for opcode, modes in OPCODES.items():
         members
     )
     globals()[name] = cls
-
