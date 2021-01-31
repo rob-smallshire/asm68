@@ -194,6 +194,24 @@ def test_refer_to_label():
     assert asm.loop == Label('loop')
 
 
+def test_make_double_label():
+    asm = AsmDsl()
+    asm  .loop1 .loop2  ( ADDA, 0x30 )
+    assert statement_index(asm, 'loop1') == statement_index(asm, 'loop2')
+
+
+def test_refer_to_first_of_doublelabel():
+    asm = AsmDsl()
+    asm  .loop1 .loop2  ( ADDA, 0x30 )
+    assert asm.loop1 == Label('loop1')
+
+
+def test_refer_to_second_of_doublelabel():
+    asm = AsmDsl()
+    asm  .loop1 .loop2  ( ADDA, 0x30 )
+    assert asm.loop2 == Label('loop2')
+
+
 @given(args=lists(min_size=4, elements=integers()))
 def test_incorrect_number_of_arguments(args):
     asm = AsmDsl()
