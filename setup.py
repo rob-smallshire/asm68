@@ -45,7 +45,7 @@ setup(
     name='asm68',
     python_requires='>=3.6',
     version=read_version()[0],
-    packages=find_packages(),
+    package_dir={'': 'source'},
     author='Robert Smallshire',
     author_email='robert@smallshire.org.uk',
     description='6309 assembler as an internal Python Domain Specific Language',

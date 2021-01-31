@@ -116,7 +116,7 @@ OPCODES_6809 = {
 
 OPCODES_6309 = {
     "bitMD": {              IMM: '113C'                                                       },
-    "cmpr":  {              IMM: '1037',                                                        },
+    "cmpr":  {              INT: '1037',                                                        },
     "decD":  { INH: '104A',                                                                     },
     "decE":  { INH: '114A',                                                                     },
     "decF":  { INH: '115A',                                                                     },
