@@ -20,7 +20,7 @@ def read(name, **kwargs):
 
 def read_version():
     "Read the `(version-string, version-info)` from `asm68/version.py`."
-    version_file = local_file('asm68', 'version.py')
+    version_file = local_file('source', 'asm68', 'version.py')
     local_vars = {}
     with open(version_file) as handle:
         exec(handle.read(), {}, local_vars)
@@ -48,7 +48,7 @@ setup(
     packages=find_packages(),
     author='Robert Smallshire',
     author_email='robert@smallshire.org.uk',
-    description='6809/6309 assembler as an internal Python Domain Specific Language',
+    description='6309 assembler as an internal Python Domain Specific Language',
     license='MIT License',
     keywords='asm assembly 6809 6309 8-bit',
     url='http://github.com/rob-smallshire/asm68',
