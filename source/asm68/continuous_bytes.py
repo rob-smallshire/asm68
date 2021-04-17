@@ -35,10 +35,11 @@ class RangeSet(Set, Sequence):
 class ContinuousBytes(Mapping):
 
     def __init__(self, blocks, *, start=None, stop=None, default=0x00):
-        self._blocks = [(address, blocks[address]) for address in sorted(blocks)]
-        if len(self._blocks) != 0:
-            self._start = start if (start is not None) else self._blocks[0][0]
-            self._stop = stop if (stop is not None) else self._blocks[-1][0] + len(self._blocks[-1][1])
+        # TODO: Check that blocks don't overlap
+        self._addresses, self._blocks = zip(*((address, blocks[address]) for address in sorted(blocks)))
+        if len(self._addresses) != 0:
+            self._start = start if (start is not None) else self._addresses[0]
+            self._stop = stop if (stop is not None) else self._addresses[-1] + len(self._blocks[-1])
         else:
             self._start = 0
             self._stop = 0
@@ -65,10 +66,13 @@ class ContinuousBytes(Mapping):
     def __getitem__(self, k):
         if k not in self.keys():
             raise KeyError(f"Key {k} not in {self!r}")
-        index = bisect_right(self._blocks, (k, b'')) - 1
-        address, block = self._blocks[index]
-        if k in range(address, address + len(block)):
-            return block[k - address]
+        index_after = bisect_right(self._addresses, k)
+        if index_after != 0:
+            index = index_after - 1
+            address = self._addresses[index]
+            block = self._blocks[index]
+            if address <= k < address + len(block):
+                return block[k - address]
         return self._default
 
     def __repr__(self):
