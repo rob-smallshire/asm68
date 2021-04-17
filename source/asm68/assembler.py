@@ -137,7 +137,6 @@ class Assembler:
         while self._more_passes_required:
             self._more_passes_required = False
             self._code.clear()
-            self.origin = 0
             for statement in statements:
                 self.assemble_statement(statement)
             self._i += 1
