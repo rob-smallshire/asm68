@@ -30,7 +30,7 @@ def assemble(statements, *, origin=0, logger=None):
         warnings: An optional mutable sequence to which warning messages will be appended.
     """
     asm = Assembler(origin, logger=logger)
-    asm.assemble(statements)
+    asm.assemble(statements, origin)
     code = asm.object_code()
     return code
 
@@ -131,12 +131,13 @@ class Assembler:
         self._flatten()
         return {address: fragments[0] for address, fragments in self._code.items()}
 
-    def assemble(self, statements, max_passes=3):
+    def assemble(self, statements, origin=0, max_passes=3):
         # Do multi-pass assembly
         self._i = 0
         while self._more_passes_required:
             self._more_passes_required = False
             self._code.clear()
+            self.origin = origin
             for statement in statements:
                 self.assemble_statement(statement)
             self._i += 1
