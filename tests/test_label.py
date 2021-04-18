@@ -1,17 +1,12 @@
 from hypothesis import given, assume
-from hypothesis.strategies import from_regex, composite, text
+from hypothesis.strategies import text
 from pytest import raises
 
 from asm68.label import Label
 from asm68.util import is_valid_variable_name
-from tests.predicates import check_balanced
+from helpers.predicates import check_balanced
+from helpers.strategies import label_names
 
-
-@composite
-def label_names(draw):
-    label_name = draw(from_regex(r'\A[A-Za-z][A-Za-z0-9_]*\Z'))
-    assume(is_valid_variable_name(label_name))
-    return label_name
 
 @given(name=label_names())
 def test_label_value(name):

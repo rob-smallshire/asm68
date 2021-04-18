@@ -2,7 +2,7 @@ from asm68.registers import *
 from asm68.mnemonics import CMPR
 from asm68.asmdsl import AsmDsl, statements
 from asm68.assembler import assemble, InterRegisterError
-from helpers import check_object_code
+from helpers.code import check_object_code
 from pytest import raises
 
 

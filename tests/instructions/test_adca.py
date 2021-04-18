@@ -1,6 +1,6 @@
 from asm68.registers import *
 from asm68.mnemonics import ADCA
-from helpers import check_object_code
+from helpers.code import check_object_code
 
 
 def test_adc_immediate():

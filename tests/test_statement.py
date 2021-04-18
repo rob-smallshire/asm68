@@ -1,4 +1,4 @@
-from hypothesis import given, assume, settings
+from hypothesis import given, assume
 from hypothesis.strategies import composite, integers, text
 from pytest import raises
 
@@ -7,9 +7,8 @@ from asm68.util import is_valid_variable_name
 from asm68.mnemonics import ABX
 from asm68.instructions import *
 from asm68.statement import Statement
-from tests.predicates import check_balanced
-from tests.test_label import label_names
-from tests.test_mnemonics import mnemonics
+from helpers.predicates import check_balanced
+from helpers.strategies import label_names, mnemonics
 
 @composite
 def statement_classes(draw):

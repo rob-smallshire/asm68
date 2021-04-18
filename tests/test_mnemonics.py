@@ -1,23 +1,12 @@
-from string import ascii_uppercase, ascii_lowercase
-
 from hypothesis import given
-from hypothesis.strategies import text, composite
+from hypothesis.strategies import text
 from pytest import raises
 
 from asm68.mnemonics import Mnemonic
-from tests.alphabets import ASCII_UPPERCASE_AND_DIGITS, ASCII_LOWERCASE_AND_DIGITS, DIGITS
-from tests.predicates import check_balanced
+from helpers.alphabets import DIGITS
+from helpers.predicates import check_balanced
+from helpers.strategies import mnemonics
 
-
-@composite
-def mnemonics(draw, min_size=1):
-    if min_size < 0:
-        raise ValueError("mnemonics(min_size={}) is negative".format(min_size))
-    a_size = min(min_size, 1)
-    b_size = min_size - a_size
-    a = draw(text(min_size=a_size, max_size=1, alphabet=ascii_uppercase))
-    b = draw(text(min_size=b_size, alphabet=ASCII_UPPERCASE_AND_DIGITS))
-    return a + b
 
 def test_empty_mnemonic_raises_value_error():
     with raises(ValueError):

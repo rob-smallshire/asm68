@@ -5,7 +5,7 @@ from hypothesis.strategies import integers, sets, sampled_from, one_of, lists, j
 from asm68.addrmodes import (PageDirect, ExtendedDirect, ExtendedIndirect, Inherent, Immediate, Registers, Indexed,
                              Relative8, Integers, Relative16)
 from asm68.registers import REGISTERS, INDEX_REGISTERS, ACCUMULATORS, X, AutoIncrementedRegister
-from tests.predicates import check_balanced
+from helpers.predicates import check_balanced
 
 
 def test_inherent_equality():
