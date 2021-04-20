@@ -4,7 +4,7 @@ import logging
 
 from asm68.asmdsl import statements
 from asm68.assembler import assemble, TooManyPassesError
-from asm68.continuous_bytes import ContinuousBytes
+from asm68.contiguous_bytes import ContiguousBytes
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ def export_bin(output_file, code_blocks, multiplicity=1):
         raise ValueError(f"Multiplicity {multiplicity} is less than one")
     #if len(code_blocks) != 1:
     #    raise ValueError("Can only export bin for single code block")
-    code = ContinuousBytes(code_blocks, default=0x00)
+    code = ContiguousBytes(code_blocks, default=0x00)
     logging.info(f"Export from address 0x{code.start:04X} to 0x{code.stop - 1:04X}")
     for _ in range(multiplicity):
         output_file.write(code.to_bytes())
