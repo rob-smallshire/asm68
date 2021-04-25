@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from functools import singledispatch
 from itertools import islice
 
-from asm68.addrmodecodes import REL8, REL16, IMM, EXT
 from asm68.addrmodes import (
     PageDirect,
     ExtendedDirect,
@@ -105,11 +104,21 @@ class Assembler:
 
     @property
     def unresolved_labels(self):
+        """A set of unresolved labels.
+        """
         return self._unreferenced_labels
 
     @property
     def unreferenced_labels(self):
+        """A set of unreferenced labels.
+        """
         return self._unreferenced_labels
+
+    @property
+    def label_addresses(self):
+        """A mapping from label names to label addresses.
+        """
+        return self._label_addresses
 
     def _in_existing_fragment(self, value):
 
@@ -263,12 +272,12 @@ class Assembler:
                 offset = target_address - self.pos - len(opcode_bytes) - operand_bytes_length
                 unsigned_offset = twos_complement(offset, operand_bytes_length * 8)
                 result = self.value_to_bytes(unsigned_offset, operand_bytes_length)
-                self._unresolved_labels.discard(operand)
+                self._unresolved_labels.discard(operand.name)
             else:
                 self._more_passes_required = True
                 result = bytes(operand_bytes_length)
-                self._unresolved_labels.add(operand)
-            self._unreferenced_labels.discard(operand)
+                self._unresolved_labels.add(operand.name)
+            self._unreferenced_labels.discard(operand.name)
         else:
             # TODO: What if the operand is a number?
             raise NotImplementedError
@@ -300,13 +309,13 @@ class Assembler:
     def assemble_label_operand(self, label):
         if label.name in self._label_addresses:
             target_address = self._label_addresses[label.name]
-            self._unresolved_labels.discard(label)
+            self._unresolved_labels.discard(label.name)
             result = (hi(target_address), lo(target_address))
         else:
             self._more_passes_required = True
-            self._unresolved_labels.add(label)
+            self._unresolved_labels.add(label.name)
             result = (0, 0)
-        self._unreferenced_labels.discard(label)
+        self._unreferenced_labels.discard(label.name)
         return result
 
 @singledispatch
@@ -326,7 +335,6 @@ def _(statement, asm):
     #       Maybe assemble_with_operand instead of assembling
     #       the opcode separately here
     operand_bytes = statement.assemble_operand(operand, opcode_key, asm, opcode_bytes)
-    #operand_bytes = assemble_operand(operand, opcode_key, asm, statement)
     asm._extend(opcode_bytes + operand_bytes)
 
 
@@ -369,16 +377,16 @@ def fdb_value(v, asm):
     if isinstance(v, Label):
         if v.name in asm._label_addresses:
             value = asm._label_addresses[v.name]
-            asm._unresolved_labels.discard(v)
+            asm._unresolved_labels.discard(v.name)
         else:
             value = 0
             asm._more_passes_required = True
-            asm._unresolved_labels.add(v)
-        asm._unreferenced_labels.discard(v)
+            asm._unresolved_labels.add(v.name)
+        asm._unreferenced_labels.discard(v.name)
     else:
         value = v
     if value not in range(0, 65536):
-        raise ValueError(f"FDB value {value} (0x{value:04x}) not in 0–65535 (0x0-0xFFFF)")
+        raise ValueError(f"FDB value {value} (0x{value:04x}) not in 0–65535 (0x0000-0xFFFF)")
     hi = (value >> 8) & 0xff
     lo = value & 0xff
     return hi, lo

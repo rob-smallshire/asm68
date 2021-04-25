@@ -2,8 +2,7 @@ import os
 import importlib.util
 import logging
 
-from asm68.asmdsl import statements
-from asm68.assembler import assemble, TooManyPassesError
+from asm68.assembler import TooManyPassesError, Assembler
 from asm68.contiguous_bytes import ContiguousBytes
 
 logger = logging.getLogger(__name__)
@@ -47,14 +46,39 @@ def asm(source_filepath, output_file, output_format, repeat):
             e
         )
 
-    code_blocks = assemble(statements(m.asm))
+    asm = Assembler(0, logger=logger)
+    asm.assemble(m.asm.statements, 0)
 
+    print_labels(asm)
+
+    #pprint(asm.unreferenced_labels)
+
+    code_blocks = asm.object_code()
     for address, code in code_blocks.items():
         hex_assembly = ' '.join(format(b, '02X') for b in code)
         logger.debug("{:04X}: {}".format(address, hex_assembly))
         logger.info("code length: {} bytes".format(len(code)))
 
     export_code_blocks(output_file, code_blocks, output_format, repeat)
+
+
+def print_labels(asm):
+    addresses_to_labels = {address: label for label, address in asm.label_addresses.items()}
+    rows = []
+    for address, label in sorted(addresses_to_labels.items()):
+        row = (
+            label,
+            "{:04X}".format(address) if label else "?",
+            "<unreferenced>" if label in asm.unreferenced_labels else "",
+        )
+        rows.append(row)
+    columns = list(zip(*rows))
+    widths = [max(max(map(len, column)), 1) for column in columns]
+    for cells in rows:
+        text_row = " ".join("{:{}}".format(cell, width) for cell, width in zip(cells, widths))
+        print(text_row)
+
+
 
 
 def import_module_from_file(module_filepath):

@@ -52,6 +52,10 @@ class AsmDsl:
     def __getattr__(self, name):
         return Labeller(self, name=name)
 
+    @property
+    def statements(self):
+        return tuple(self._statements)
+
 
 class Labeller(Label):
 
