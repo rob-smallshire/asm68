@@ -1,6 +1,7 @@
 import os
 import importlib.util
 import logging
+from collections import defaultdict
 
 from asm68.assembler import TooManyPassesError, Assembler
 from asm68.contiguous_bytes import ContiguousBytes
@@ -63,15 +64,19 @@ def asm(source_filepath, output_file, output_format, repeat):
 
 
 def print_labels(asm):
-    addresses_to_labels = {address: label for label, address in asm.label_addresses.items()}
+    addresses_to_labels = defaultdict(list)
+    for label, address in asm.label_addresses.items():
+        addresses_to_labels[address].append(label)
+
     rows = []
-    for address, label in sorted(addresses_to_labels.items()):
-        row = (
-            label,
-            "{:04X}".format(address) if label else "?",
-            "<unreferenced>" if label in asm.unreferenced_labels else "",
-        )
-        rows.append(row)
+    for address, labels in sorted(addresses_to_labels.items()):
+        for label in reversed(labels):
+            row = (
+                label,
+                "{:04X}".format(address) if label else "?",
+                "<unreferenced>" if label in asm.unreferenced_labels else "",
+            )
+            rows.append(row)
     columns = list(zip(*rows))
     widths = [max(max(map(len, column)), 1) for column in columns]
     for cells in rows:
