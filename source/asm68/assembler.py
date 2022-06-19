@@ -178,8 +178,6 @@ class Assembler:
                     if self._i == 0:
                         raise RuntimeError("Label {} already used previously."
                                            .format(label))
-                    # else:
-                    #    print("More passes required.")
             self._label_addresses[label.name] = self.pos
             self._unreferenced_labels.add(label.name)
             self._unresolved_labels.discard(label.name)
