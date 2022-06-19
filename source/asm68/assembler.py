@@ -46,7 +46,7 @@ class TooManyPassesError(Exception):
 
     @property
     def unresolved_label_names(self):
-        return sorted(label.name for label in self.unresolved_labels)
+        return sorted(self.unresolved_labels)
 
     @property
     def unreferenced_label_names(self):
