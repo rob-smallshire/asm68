@@ -281,7 +281,8 @@ class Assembler:
             raise NotImplementedError
         return result
 
-    def value_to_bytes(self, unsigned_offset, operand_bytes_length):
+    @staticmethod
+    def value_to_bytes(unsigned_offset, operand_bytes_length):
         if operand_bytes_length == 1:
             result = bytes((unsigned_offset,))
         elif operand_bytes_length == 2:
@@ -290,7 +291,8 @@ class Assembler:
             assert False, f"Unexpected operand bytes length {operand_bytes_length}"
         return result
 
-    def assemble_register_operand(self, operand, opcode_key, statement, opcode_bytes):
+    @staticmethod
+    def assemble_register_operand(operand, opcode_key, statement, opcode_bytes):
         assert isinstance(operand, Registers)
         source, target = operand.registers
         try:
