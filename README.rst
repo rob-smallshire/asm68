@@ -12,9 +12,6 @@ The assembler is currently in development.
 
 Build status:
 
-.. image:: https://travis-ci.org/rob-smallshire/asm68.svg?branch=master
-    :target: https://travis-ci.org/rob-smallshire/asm68
-
 .. image:: https://coveralls.io/repos/github/rob-smallshire/asm68/badge.svg?branch=master
     :target: https://coveralls.io/github/rob-smallshire/asm68?branch=master
 
