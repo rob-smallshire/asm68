@@ -26,7 +26,6 @@ def assemble(statements, *, origin=0, logger=None):
     Args:
         statements: The sequence of statements to be assembled.
         origin: The start address for assembly.
-        warnings: An optional mutable sequence to which warning messages will be appended.
     """
     asm = Assembler(origin, logger=logger)
     asm.assemble(statements, origin)
@@ -193,13 +192,28 @@ class Assembler:
         if isinstance(operand, Label):
             result = self.assemble_label_operand(operand)
         else:
-            assert statement.inherent_register.width in {1, 2}
+            assert statement.inherent_register.width in {1, 2}  # TODO: 32-bit Q register
+
+            value = operand.value
             if statement.inherent_register.width == 1:
-                result = (operand.value, )
+                if not 0 <= value < 0xff:
+                    raise ValueError(
+                        f"Immediate operand value {value} (0x{value:02x}) out of range 0 to 255 "
+                        f"(0xff) for register {statement.inherent_register} with width of "
+                        f"{statement.inherent_register.width*8} bits"
+                    )
+                result = (value,)
             elif statement.inherent_register.width == 2:
-                result = (hi(operand.value), lo(operand.value))
+                if not 0 <= value < 0xffff:
+                    raise ValueError(
+                        f"Immediate operand value {value} (0x{value:02x}) out of range 0 to 32767 "
+                        f"(0xffff) for register {statement.inherent_register} with width of "
+                        f"{statement.inherent_register.width*8} bits"
+                    )
+                result = (hi(value), lo(value))
             else:
                 assert False, f"Unexpected inherent register width {statement.inherent_register.width}"
+
         return bytes(result)
 
     def assemble_page_direct_operand(self, operand, opcode_key, statement, opcode_bytes):
