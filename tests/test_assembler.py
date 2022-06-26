@@ -1,15 +1,15 @@
 import logging
-from logging import Handler, NOTSET
-from logging.handlers import QueueHandler
-
-import pytest
 from hypothesis import given, assume, example
 from hypothesis.strategies import lists, one_of, integers, sampled_from
-from pytest import raises, skip
+from pytest import raises
 
 from asm68.asmdsl import AsmDsl, statements
-from asm68.assembler import assemble, assemble_statement, assemble_operand, TooManyPassesError, \
-    Assembler
+from asm68.assembler import (
+    assemble,
+    assemble_statement,
+    assemble_operand,
+    TooManyPassesError,
+)
 from asm68.mnemonics import *
 from asm68.registers import B, X, A, Y, INDEX_REGISTERS, U, S, E, D, F, W
 from asm68.twiddle import twos_complement
@@ -232,7 +232,7 @@ def test_leventhal_4_7__find_larger_of_two_numbers():
         '3F')
 
 
-def test_levethal_4_8__sixteen_bit_addition():
+def test_leventhal_4_8__sixteen_bit_addition():
     asm = AsmDsl()
     asm         (   LDD,    {0x40},     "GET FIRST 16-BIT NUMBER"   )
     asm         (   ADDD,   {0x42},     "ADD SECOND 16-BIT NUMBER"  )
@@ -247,7 +247,7 @@ def test_levethal_4_8__sixteen_bit_addition():
         '3F')
 
 
-def test_levethal_4_9__table_of_squares():
+def test_leventhal_4_9__table_of_squares():
     asm = AsmDsl()
     asm         (   LDB,    {0x41},     "GET DATA"                  )
     asm         (   LDX,    0x50,       "GET BASE ADDRESS"          )
@@ -270,7 +270,7 @@ def test_levethal_4_9__table_of_squares():
     )
 
 
-def test_levethal_4_9_modified__table_of_squares():
+def test_leventhal_4_9_modified__table_of_squares():
     asm = AsmDsl()
     asm         (   LDB,    {0x41},     "GET DATA"                  )
     asm         (   LDX,    asm.SQTAB,  "GET BASE ADDRESS"          )  # Immediate addressing
@@ -293,7 +293,7 @@ def test_levethal_4_9_modified__table_of_squares():
     )
 
 
-def test_levethal_4_10_ones_complement():
+def test_leventhal_4_10_ones_complement():
     asm = AsmDsl()
     asm         (   LDD,    {0x40},     "GET 16-BIT NUMBER"             )
     asm         (   COMA,               "ONES COMPLEMENT MSB'S"         )
@@ -310,7 +310,7 @@ def test_levethal_4_10_ones_complement():
         '3F')
 
 
-def test_levethal_5_1a_sum_of_data():
+def test_leventhal_5_1a_sum_of_data():
     asm = AsmDsl()
     asm         (   CLRA,               "SUM = ZERO"                )
     asm         (   LDB,    {0x41},     "COUNT = LENGTH OF ARRAY"   )
@@ -333,7 +333,7 @@ def test_levethal_5_1a_sum_of_data():
         '3F')
 
 
-def test_levethal_5_1b_sum_of_data():
+def test_leventhal_5_1b_sum_of_data():
     asm = AsmDsl()
     asm         (   CLRA,               "SUM = ZERO"                )
     asm         (   LDB,    {0x41},     "COUNT = LENGTH OF ARRAY"   )
@@ -356,7 +356,7 @@ def test_levethal_5_1b_sum_of_data():
         '3F')
 
 
-def test_levethal_5_2__16_bit_sum_of_data():
+def test_leventhal_5_2__16_bit_sum_of_data():
     asm = AsmDsl()
     asm         (   CLRA,               "MSB'S OF SUM = ZERO"       )
     asm         (   CLRB,               "LSB'S OF SUM = ZERO"       )
@@ -381,7 +381,7 @@ def test_levethal_5_2__16_bit_sum_of_data():
         '3F')
 
 
-def test_levethal_5_2__16_bit_sum_of_data_long_offset():
+def test_leventhal_5_2__16_bit_sum_of_data_long_offset():
     asm = AsmDsl()
     asm         (   CLRA,               "MSB'S OF SUM = ZERO"       )
     asm         (   CLRB,               "LSB'S OF SUM = ZERO"       )
@@ -408,7 +408,7 @@ def test_levethal_5_2__16_bit_sum_of_data_long_offset():
         '3F')
 
 
-def test_levethal_5_3__number_of_negative_elements():
+def test_leventhal_5_3__number_of_negative_elements():
     asm = AsmDsl()
     asm         (   LDX,    0x42,       "POINT TO FIRST NUMBER"         )
     asm         (   CLRB,               "NUMBER OF NEGATIVES = ZERO"    )
@@ -745,6 +745,32 @@ def test_leventhal_6_2__find_first_non_blank_character():
         '27 FC'
         '30 1F'
         '9F 40'
+        '3F'
+    )
+
+
+def test_leventhal_6_3__replace_leading_zeros_with_blanks():
+    asm = AsmDsl()
+    asm         (   LDA,    ord('0'),      "Get ASCII zero for comparison"  )
+    asm         (   LDB,    ord(' '),      "Get ASCII space for storage"    )
+    asm         (   LDX,    0x41,          "Point to the start of the array")
+    asm  .CHKZ  (   CMPA,   {0:X+1},       "Is leading digit zero?"         )
+    asm         (   BNE,    asm.DONE,      "No, done"                       )
+    asm         (   STB,    {-1:X},        "Yes, replace zero with space"   )
+    asm         (   DEC,    {0x40},                                         )
+    asm         (   BNE,    asm.CHKZ,                                       )
+    asm  .DONE  (   SWI                                                     )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '86 30'
+        'C6 20'
+        '8E 0041'
+        'A1 80'
+        '26 06'
+        'E7 1F'
+        '0A 40'
+        '26 F6'
         '3F'
     )
 
