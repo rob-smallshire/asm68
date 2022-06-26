@@ -1,4 +1,3 @@
-from asm68.addrmodecodes import INT
 from asm68.addrmodes import *
 
 OPCODES_6809 = {
@@ -17,6 +16,8 @@ OPCODES_6809 = {
     "asrA":  { INH: '47',                                                                     },
     "asrB":  { INH: '57',                                                                     },
     "asr":   {                           DIR: '07',   IDX: '67',   EXT: '77',                 },
+    "bcc":   {                                                                   REL8: '24'   },
+    "bcs":   {                                                                   REL8: '25'   },
     "beq":   {                                                                   REL8: '27'   },
     "bitA":  {              IMM: '85',   DIR: '95',   IDX: 'A5',   EXT: 'B5',                 },
     "bitB":  {              IMM: 'C5',   DIR: 'D5',   IDX: 'E5',   EXT: 'F5',                 },
