@@ -775,6 +775,44 @@ def test_leventhal_6_3__replace_leading_zeros_with_blanks():
     )
 
 
+def test_leventhal_6_4__add_even_parity_to_ascii_characters():
+    asm = AsmDsl()
+    asm         (   LDX,    0x41,          "Get ASCII zero for comparison"          )
+    asm  .GTBYTE(   LDA,    {0:X+1},       "Get a byte of data"                     )
+    asm         (   CLRB,                  "Bit count = zero initially"             )
+    asm  .CHBIT (   ASLA,                  "Shift a data bit to carry"              )
+    asm         (   ADCB,   0,             "If bit is 1, increment bit count"       )
+    asm         (   TSTA,                  "Keep counting until data becomes zero"  )
+    asm         (   BNE,    asm.CHBIT,                                              )
+    asm         (   LSRB,                  "Did data have even number of '1' bits?" )
+    asm         (   BCC,    asm.NEXTE,     "Did data have even number of '1' bits?" )
+    asm         (   LDA,    {-1:X},                                                 )
+    asm         (   ORA,    0b10000000,                                             )
+    asm         (   STA,    {-1:X},                                                 )
+    asm  .NEXTE (   DEC,    {0x40},                                                 )
+    asm         (   BNE,    asm.GTBYTE,                                             )
+    asm  .DONE  (   SWI                                                             )
+
+    code = assemble(statements(asm))
+    assert code[0] == bytes.fromhex(
+        '8E 0041'
+        'A6 80'
+        '5F'
+        '48'
+        'C9 00'
+        '4D'
+        '26 FA'
+        '54'
+        '24 06'
+        'A6 1F'
+        '8A 80'
+        'A7 1F'
+        '0A 40'
+        '26 EA'
+        '3F'
+    )
+
+
 def test_unresolved_label_reports_error():
     asm = AsmDsl()
     asm         (   BEQ,    asm.CHBLK,  "YES, KEEP EXAMINING CHARS"      )
