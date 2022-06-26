@@ -69,12 +69,16 @@ class Register:
         return AutoIncrementedRegister(self, -lhs)
 
 
+
+CREMENTS = {-2, -1, +1, +2}
+
 class AutoIncrementedRegister:
 
     def __init__(self, register, delta):
-        if delta not in {-2, -1, +1, +2}:
-            direction = 'post-inc' if delta > 0 else 'pre-dec'
-            raise ValueError(f"Auto {direction}rement {delta} of {register.name} not in the range 0 to 2")
+        if delta not in CREMENTS:
+            direction = ("Null increment", "Auto post-increment", "Auto pre-decrement")[(delta > 0) - (delta < 0)]
+            crements = ", ".join(f"{v:+1}" for v in sorted(CREMENTS))
+            raise ValueError(f"{direction} ({delta}) of {register.name} not one of {crements}")
         self._register = register
         self._delta = delta
 
