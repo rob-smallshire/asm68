@@ -196,7 +196,7 @@ class Assembler:
 
             value = operand.value
             if statement.inherent_register.width == 1:
-                if not 0 <= value < 0xff:
+                if not 0 <= value <= 0xff:
                     raise ValueError(
                         f"Immediate operand value {value} (0x{value:02x}) out of range 0 to 255 "
                         f"(0xff) for register {statement.inherent_register} with width of "
@@ -204,7 +204,7 @@ class Assembler:
                     )
                 result = (value,)
             elif statement.inherent_register.width == 2:
-                if not 0 <= value < 0xffff:
+                if not 0 <= value <= 0xffff:
                     raise ValueError(
                         f"Immediate operand value {value} (0x{value:02x}) out of range 0 to 32767 "
                         f"(0xffff) for register {statement.inherent_register} with width of "

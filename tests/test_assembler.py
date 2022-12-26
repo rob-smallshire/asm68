@@ -328,7 +328,7 @@ def test_leventhal_5_1a_sum_of_data():
         '8E 0042'
         'AB 80'
         '5A'
-        '26 FB'
+        '26 FB'  
         '97 40'
         '3F')
 
